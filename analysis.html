@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gamified | Game Timeline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+  <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0f172a 0%, #1e293b 100%);
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+    }
+    #timeline {
+      background: #0c0c1e;
+      border-radius: 1.5rem;
+      box-shadow: 0 0 50px rgba(100, 255, 218, 0.2);
+      overflow-x: auto !important;
+      white-space: nowrap;
+      height: 450px;
+    }
+    .vis-item {
+      border-radius: 0.75rem;
+      padding: 6px 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      transform: scale(0.9);
+    }
+    .vis-item.vis-selected {
+      background-color: #0ea5e9 !important;
+      border-color: #ffffff !important;
+      color: #ffffff !important;
+    }
+    .fps       { background-color: #f43f5e; color: white; }
+    .rpg       { background-color: #6366f1; color: white; }
+    .sandbox   { background-color: #facc15; color: black; }
+    .adventure { background-color: #10b981; color: white; }
+    .platformer{ background-color: #8b5cf6; color: white; }
+    .mobile    { background-color: #14b8a6; color: white; }
+    .vis-time-axis .vis-text { color: #e2e8f0; }
+  </style>
+</head>
+<body class="p-6">
+  <h1 class="text-5xl font-extrabold text-center mb-8 text-cyan-300 drop-shadow">🎮 Gamified: Ultimate Game Timeline</h1>
+  <div id="timeline"></div>
+
+  <script>
+    const container = document.getElementById('timeline');
+    const allItems = new vis.DataSet([
+      { id: 1, content: 'DOOM', start: '1993-12-10', className: 'fps' },
+      { id: 2, content: 'Half-Life', start: '1998-11-19', className: 'fps' },
+      { id: 3, content: 'Halo: Combat Evolved', start: '2001-11-15', className: 'fps' },
+      { id: 4, content: 'Call of Duty: Modern Warfare', start: '2007-11-05', className: 'fps' },
+      { id: 5, content: 'Overwatch', start: '2016-05-24', className: 'fps' },
+      { id: 6, content: 'Valorant', start: '2020-06-02', className: 'fps' },
+      { id: 7, content: 'Fortnite', start: '2017-07-21', className: 'fps' },
+      { id: 8, content: 'Counter-Strike', start: '2000-11-08', className: 'fps' },
+      { id: 9, content: 'Skyrim', start: '2011-11-11', className: 'rpg' },
+      { id: 10, content: 'The Witcher 3', start: '2015-05-19', className: 'rpg' },
+      { id: 11, content: 'Elden Ring', start: '2022-02-25', className: 'rpg' },
+      { id: 12, content: 'League of Legends', start: '2009-10-27', className: 'rpg' },
+      { id: 13, content: 'Minecraft', start: '2009-05-17', className: 'sandbox' },
+      { id: 14, content: 'Roblox', start: '2006-09-01', className: 'sandbox' },
+      { id: 15, content: 'Terraria', start: '2011-05-16', className: 'sandbox' },
+      { id: 16, content: 'Among Us', start: '2018-06-15', className: 'sandbox' },
+      { id: 17, content: 'The Sims', start: '2000-02-04', className: 'sandbox' },
+      { id: 18, content: 'Grand Theft Auto V', start: '2013-09-17', className: 'adventure' },
+      { id: 19, content: 'Red Dead Redemption 2', start: '2018-10-26', className: 'adventure' },
+      { id: 20, content: 'Uncharted 4', start: '2016-05-10', className: 'adventure' },
+      { id: 21, content: 'Zelda: Breath of the Wild', start: '2017-03-03', className: 'adventure' },
+      { id: 22, content: 'Tomb Raider', start: '1996-10-25', className: 'adventure' },
+      { id: 23, content: 'Super Mario Bros.', start: '1985-09-13', className: 'platformer' },
+      { id: 24, content: 'Tetris', start: '1984-06-06', className: 'platformer' },
+      { id: 25, content: 'Pac-Man', start: '1980-05-22', className: 'platformer' },
+      { id: 26, content: 'Celeste', start: '2018-01-25', className: 'platformer' },
+      { id: 27, content: 'Hollow Knight', start: '2017-02-24', className: 'platformer' },
+      { id: 28, content: 'Angry Birds', start: '2009-12-11', className: 'mobile' },
+      { id: 29, content: 'Clash of Clans', start: '2012-08-02', className: 'mobile' },
+      { id: 30, content: 'PUBG Mobile', start: '2018-03-19', className: 'mobile' }
+    ]);
+
+    const options = {
+      width: '100%',
+      height: '100%',
+      stack: false,
+      margin: { item: 20 },
+      showMajorLabels: true,
+      showCurrentTime: true,
+      orientation: 'top',
+      tooltip: {
+        followMouse: true,
+        template: function (item) {
+          return `<div><strong>${item.content}</strong><br>${new Date(item.start).toDateString()}</div>`;
+        }
+      },
+      zoomMin: 1000 * 60 * 60 * 24 * 30 * 6,
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 20,
+      maxHeight: 450
+    };
+
+    const timeline = new vis.Timeline(container);
+    timeline.setOptions(options);
+    timeline.setItems(allItems);
+
+    const start = new Date(1980, 0, 1);
+    const end = new Date(2030, 0, 1);
+    timeline.setWindow(start, end, { animation: false });
+  </script>
+</body>
+</html>
