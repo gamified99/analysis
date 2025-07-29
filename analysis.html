@@ -8,104 +8,290 @@
   <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
   <style>
     body {
-      background: radial-gradient(circle at top, #0f172a 0%, #1e293b 100%);
-      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
       color: white;
+      min-height: 100vh;
     }
+    
     #timeline {
-      background: #0c0c1e;
+      background: rgba(15, 23, 42, 0.8);
       border-radius: 1.5rem;
-      box-shadow: 0 0 50px rgba(100, 255, 218, 0.2);
-      overflow-x: auto !important;
-      white-space: nowrap;
-      height: 450px;
+      box-shadow: 0 0 50px rgba(100, 255, 218, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      height: 600px;
+      border: 1px solid rgba(100, 255, 218, 0.2);
+      backdrop-filter: blur(10px);
     }
+    
     .vis-item {
-      border-radius: 0.75rem;
-      padding: 6px 10px;
+      border-radius: 0.5rem;
+      padding: 4px 8px;
       font-weight: 600;
-      white-space: nowrap;
-      transform: scale(0.9);
+      font-size: 11px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
     }
+    
+    .vis-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    
     .vis-item.vis-selected {
       background-color: #0ea5e9 !important;
       border-color: #ffffff !important;
       color: #ffffff !important;
+      transform: scale(1.1);
     }
-    .fps       { background-color: #f43f5e; color: white; }
-    .rpg       { background-color: #6366f1; color: white; }
-    .sandbox   { background-color: #facc15; color: black; }
-    .adventure { background-color: #10b981; color: white; }
-    .platformer{ background-color: #8b5cf6; color: white; }
-    .mobile    { background-color: #14b8a6; color: white; }
-    .vis-time-axis .vis-text { color: #e2e8f0; }
+    
+    /* Game genre colors */
+    .fps         { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .rpg         { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+    .sandbox     { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .adventure   { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .platformer  { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+    .mobile      { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+    .strategy    { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
+    .racing      { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+    .fighting    { background: linear-gradient(135deg, #be123c, #9f1239); color: white; }
+    .puzzle      { background: linear-gradient(135deg, #84cc16, #65a30d); color: white; }
+    .mmo         { background: linear-gradient(135deg, #a855f7, #9333ea); color: white; }
+    .sports      { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    
+    .vis-time-axis .vis-text { 
+      color: #e2e8f0; 
+      font-weight: 500;
+    }
+    
+    .vis-timeline {
+      border: none;
+    }
+    
+    .vis-panel.vis-center {
+      border-left: 1px solid rgba(100, 255, 218, 0.2);
+      border-right: 1px solid rgba(100, 255, 218, 0.2);
+    }
+    
+    .header-container {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(100, 255, 218, 0.2);
+    }
+    
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 0.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body class="p-6">
-  <h1 class="text-5xl font-extrabold text-center mb-8 text-cyan-300 drop-shadow">🎮 Gamified: Ultimate Game Timeline</h1>
+  <div class="header-container">
+    <h1 class="text-6xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 drop-shadow-lg">
+      🎮 Ultimate Gaming Timeline
+    </h1>
+    <p class="text-center text-gray-300 mt-4 text-lg">Journey through gaming history - from arcade classics to modern masterpieces</p>
+    
+    <div class="legend">
+      <div class="legend-item"><div class="legend-color fps"></div><span>FPS</span></div>
+      <div class="legend-item"><div class="legend-color rpg"></div><span>RPG</span></div>
+      <div class="legend-item"><div class="legend-color strategy"></div><span>Strategy</span></div>
+      <div class="legend-item"><div class="legend-color adventure"></div><span>Adventure</span></div>
+      <div class="legend-item"><div class="legend-color platformer"></div><span>Platformer</span></div>
+      <div class="legend-item"><div class="legend-color racing"></div><span>Racing</span></div>
+      <div class="legend-item"><div class="legend-color fighting"></div><span>Fighting</span></div>
+      <div class="legend-item"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
+      <div class="legend-item"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
+      <div class="legend-item"><div class="legend-color mobile"></div><span>Mobile</span></div>
+      <div class="legend-item"><div class="legend-color mmo"></div><span>MMO</span></div>
+      <div class="legend-item"><div class="legend-color sports"></div><span>Sports</span></div>
+    </div>
+  </div>
+  
   <div id="timeline"></div>
 
   <script>
     const container = document.getElementById('timeline');
     const allItems = new vis.DataSet([
-      { id: 1, content: 'DOOM', start: '1993-12-10', className: 'fps' },
-      { id: 2, content: 'Half-Life', start: '1998-11-19', className: 'fps' },
-      { id: 3, content: 'Halo: Combat Evolved', start: '2001-11-15', className: 'fps' },
-      { id: 4, content: 'Call of Duty: Modern Warfare', start: '2007-11-05', className: 'fps' },
-      { id: 5, content: 'Overwatch', start: '2016-05-24', className: 'fps' },
-      { id: 6, content: 'Valorant', start: '2020-06-02', className: 'fps' },
-      { id: 7, content: 'Fortnite', start: '2017-07-21', className: 'fps' },
-      { id: 8, content: 'Counter-Strike', start: '2000-11-08', className: 'fps' },
-      { id: 9, content: 'Skyrim', start: '2011-11-11', className: 'rpg' },
-      { id: 10, content: 'The Witcher 3', start: '2015-05-19', className: 'rpg' },
-      { id: 11, content: 'Elden Ring', start: '2022-02-25', className: 'rpg' },
-      { id: 12, content: 'League of Legends', start: '2009-10-27', className: 'rpg' },
-      { id: 13, content: 'Minecraft', start: '2009-05-17', className: 'sandbox' },
-      { id: 14, content: 'Roblox', start: '2006-09-01', className: 'sandbox' },
-      { id: 15, content: 'Terraria', start: '2011-05-16', className: 'sandbox' },
-      { id: 16, content: 'Among Us', start: '2018-06-15', className: 'sandbox' },
-      { id: 17, content: 'The Sims', start: '2000-02-04', className: 'sandbox' },
-      { id: 18, content: 'Grand Theft Auto V', start: '2013-09-17', className: 'adventure' },
-      { id: 19, content: 'Red Dead Redemption 2', start: '2018-10-26', className: 'adventure' },
-      { id: 20, content: 'Uncharted 4', start: '2016-05-10', className: 'adventure' },
-      { id: 21, content: 'Zelda: Breath of the Wild', start: '2017-03-03', className: 'adventure' },
-      { id: 22, content: 'Tomb Raider', start: '1996-10-25', className: 'adventure' },
-      { id: 23, content: 'Super Mario Bros.', start: '1985-09-13', className: 'platformer' },
-      { id: 24, content: 'Tetris', start: '1984-06-06', className: 'platformer' },
-      { id: 25, content: 'Pac-Man', start: '1980-05-22', className: 'platformer' },
-      { id: 26, content: 'Celeste', start: '2018-01-25', className: 'platformer' },
-      { id: 27, content: 'Hollow Knight', start: '2017-02-24', className: 'platformer' },
-      { id: 28, content: 'Angry Birds', start: '2009-12-11', className: 'mobile' },
-      { id: 29, content: 'Clash of Clans', start: '2012-08-02', className: 'mobile' },
-      { id: 30, content: 'PUBG Mobile', start: '2018-03-19', className: 'mobile' }
+      // Classic Arcade Era (1970s-1980s)
+      { id: 1, content: 'Pong', start: '1972-11-29', end: '1975-11-29', className: 'sports' },
+      { id: 2, content: 'Space Invaders', start: '1978-06-01', end: '1982-06-01', className: 'fps' },
+      { id: 3, content: 'Pac-Man', start: '1980-05-22', end: '1985-05-22', className: 'puzzle' },
+      { id: 4, content: 'Donkey Kong', start: '1981-07-09', end: '1985-07-09', className: 'platformer' },
+      { id: 5, content: 'Tetris', start: '1984-06-06', end: '2024-06-06', className: 'puzzle' },
+      { id: 6, content: 'Super Mario Bros.', start: '1985-09-13', end: '2024-09-13', className: 'platformer' },
+      
+      // Golden Age of Gaming (1990s)
+      { id: 7, content: 'Super Mario World', start: '1990-11-21', end: '1995-11-21', className: 'platformer' },
+      { id: 8, content: 'Sonic the Hedgehog', start: '1991-06-23', end: '1996-06-23', className: 'platformer' },
+      { id: 9, content: 'Street Fighter II', start: '1991-02-01', end: '1996-02-01', className: 'fighting' },
+      { id: 10, content: 'Mortal Kombat', start: '1992-10-08', end: '1997-10-08', className: 'fighting' },
+      { id: 11, content: 'DOOM', start: '1993-12-10', end: '1998-12-10', className: 'fps' },
+      { id: 12, content: 'Super Metroid', start: '1994-03-19', end: '1999-03-19', className: 'adventure' },
+      { id: 13, content: 'Final Fantasy VII', start: '1997-01-31', end: '2002-01-31', className: 'rpg' },
+      { id: 14, content: 'GoldenEye 007', start: '1997-08-25', end: '2002-08-25', className: 'fps' },
+      { id: 15, content: 'Half-Life', start: '1998-11-19', end: '2003-11-19', className: 'fps' },
+      { id: 16, content: 'The Legend of Zelda: Ocarina of Time', start: '1998-11-21', end: '2003-11-21', className: 'adventure' },
+      { id: 17, content: 'StarCraft', start: '1998-03-31', end: '2024-03-31', className: 'strategy' },
+      
+      // Early 2000s Revolution
+      { id: 18, content: 'Counter-Strike', start: '2000-11-08', end: '2024-11-08', className: 'fps' },
+      { id: 19, content: 'The Sims', start: '2000-02-04', end: '2010-02-04', className: 'sandbox' },
+      { id: 20, content: 'Grand Theft Auto: Vice City', start: '2002-10-27', end: '2007-10-27', className: 'adventure' },
+      { id: 21, content: 'Halo: Combat Evolved', start: '2001-11-15', end: '2006-11-15', className: 'fps' },
+      { id: 22, content: 'World of Warcraft', start: '2004-11-23', end: '2024-11-23', className: 'mmo' },
+      { id: 23, content: 'Half-Life 2', start: '2004-11-16', end: '2009-11-16', className: 'fps' },
+      { id: 24, content: 'Guitar Hero', start: '2005-11-08', end: '2010-11-08', className: 'puzzle' },
+      { id: 25, content: 'Gears of War', start: '2006-11-07', end: '2011-11-07', className: 'fps' },
+      { id: 26, content: 'Roblox', start: '2006-09-01', end: '2024-09-01', className: 'sandbox' },
+      
+      // Modern Gaming Era (2007-2015)
+      { id: 27, content: 'Call of Duty: Modern Warfare', start: '2007-11-05', end: '2012-11-05', className: 'fps' },
+      { id: 28, content: 'Portal', start: '2007-10-09', end: '2012-10-09', className: 'puzzle' },
+      { id: 29, content: 'Super Mario Galaxy', start: '2007-11-01', end: '2012-11-01', className: 'platformer' },
+      { id: 30, content: 'Minecraft', start: '2009-05-17', end: '2024-05-17', className: 'sandbox' },
+      { id: 31, content: 'Angry Birds', start: '2009-12-11', end: '2019-12-11', className: 'mobile' },
+      { id: 32, content: 'League of Legends', start: '2009-10-27', end: '2024-10-27', className: 'strategy' },
+      { id: 33, content: 'Red Dead Redemption', start: '2010-05-18', end: '2015-05-18', className: 'adventure' },
+      { id: 34, content: 'The Elder Scrolls V: Skyrim', start: '2011-11-11', end: '2024-11-11', className: 'rpg' },
+      { id: 35, content: 'Terraria', start: '2011-05-16', end: '2024-05-16', className: 'sandbox' },
+      { id: 36, content: 'Dark Souls', start: '2011-09-22', end: '2016-09-22', className: 'rpg' },
+      { id: 37, content: 'Clash of Clans', start: '2012-08-02', end: '2024-08-02', className: 'mobile' },
+      { id: 38, content: 'Grand Theft Auto V', start: '2013-09-17', end: '2024-09-17', className: 'adventure' },
+      { id: 39, content: 'The Last of Us', start: '2013-06-14', end: '2018-06-14', className: 'adventure' },
+      { id: 40, content: 'Destiny', start: '2014-09-09', end: '2019-09-09', className: 'fps' },
+      { id: 41, content: 'The Witcher 3: Wild Hunt', start: '2015-05-19', end: '2020-05-19', className: 'rpg' },
+      
+      // Current Generation (2016-Present)
+      { id: 42, content: 'Overwatch', start: '2016-05-24', end: '2024-05-24', className: 'fps' },
+      { id: 43, content: 'Pokémon GO', start: '2016-07-06', end: '2024-07-06', className: 'mobile' },
+      { id: 44, content: 'The Legend of Zelda: Breath of the Wild', start: '2017-03-03', end: '2024-03-03', className: 'adventure' },
+      { id: 45, content: 'Fortnite Battle Royale', start: '2017-07-21', end: '2024-07-21', className: 'fps' },
+      { id: 46, content: 'Hollow Knight', start: '2017-02-24', end: '2022-02-24', className: 'platformer' },
+      { id: 47, content: 'PlayerUnknown\'s Battlegrounds', start: '2017-03-23', end: '2022-03-23', className: 'fps' },
+      { id: 48, content: 'Super Mario Odyssey', start: '2017-10-27', end: '2022-10-27', className: 'platformer' },
+      { id: 49, content: 'God of War (2018)', start: '2018-04-20', end: '2023-04-20', className: 'adventure' },
+      { id: 50, content: 'Red Dead Redemption 2', start: '2018-10-26', end: '2023-10-26', className: 'adventure' },
+      { id: 51, content: 'Among Us', start: '2018-06-15', end: '2024-06-15', className: 'strategy' },
+      { id: 52, content: 'Super Smash Bros. Ultimate', start: '2018-12-07', end: '2024-12-07', className: 'fighting' },
+      { id: 53, content: 'Celeste', start: '2018-01-25', end: '2023-01-25', className: 'platformer' },
+      { id: 54, content: 'Cyberpunk 2077', start: '2020-12-10', end: '2024-12-10', className: 'rpg' },
+      { id: 55, content: 'Valorant', start: '2020-06-02', end: '2024-06-02', className: 'fps' },
+      { id: 56, content: 'Fall Guys', start: '2020-08-04', end: '2024-08-04', className: 'platformer' },
+      { id: 57, content: 'Genshin Impact', start: '2020-09-28', end: '2024-09-28', className: 'rpg' },
+      { id: 58, content: 'It Takes Two', start: '2021-03-26', end: '2024-03-26', className: 'adventure' },
+      { id: 59, content: 'Elden Ring', start: '2022-02-25', end: '2024-02-25', className: 'rpg' },
+      { id: 60, content: 'Wordle', start: '2021-10-01', end: '2024-10-01', className: 'puzzle' },
+      
+      // Racing Games
+      { id: 61, content: 'Gran Turismo', start: '1997-12-23', end: '2002-12-23', className: 'racing' },
+      { id: 62, content: 'Need for Speed: Underground', start: '2003-11-17', end: '2008-11-17', className: 'racing' },
+      { id: 63, content: 'Mario Kart Wii', start: '2008-04-10', end: '2013-04-10', className: 'racing' },
+      { id: 64, content: 'Forza Horizon', start: '2012-10-23', end: '2024-10-23', className: 'racing' },
+      
+      // Strategy Games
+      { id: 65, content: 'Age of Empires II', start: '1999-09-30', end: '2024-09-30', className: 'strategy' },
+      { id: 66, content: 'Civilization VI', start: '2016-10-21', end: '2024-10-21', className: 'strategy' },
+      { id: 67, content: 'Chess.com', start: '2007-01-01', end: '2024-01-01', className: 'strategy' },
+      
+      // Sports Games
+      { id: 68, content: 'FIFA 98', start: '1997-06-01', end: '2002-06-01', className: 'sports' },
+      { id: 69, content: 'NBA 2K', start: '1999-11-10', end: '2024-11-10', className: 'sports' },
+      { id: 70, content: 'Rocket League', start: '2015-07-07', end: '2024-07-07', className: 'sports' }
     ]);
 
     const options = {
       width: '100%',
       height: '100%',
-      stack: false,
-      margin: { item: 20 },
+      stack: true,
+      stackSubgroups: true,
+      margin: {
+        item: {
+          horizontal: 10,
+          vertical: 8
+        }
+      },
       showMajorLabels: true,
       showCurrentTime: true,
       orientation: 'top',
+      type: 'range',
       tooltip: {
         followMouse: true,
         template: function (item) {
-          return `<div><strong>${item.content}</strong><br>${new Date(item.start).toDateString()}</div>`;
+          const startDate = new Date(item.start).toDateString();
+          const endDate = item.end ? new Date(item.end).toDateString() : 'Ongoing';
+          const duration = item.end ? 
+            Math.round((new Date(item.end) - new Date(item.start)) / (1000 * 60 * 60 * 24 * 365.25)) : 
+            Math.round((new Date() - new Date(item.start)) / (1000 * 60 * 60 * 24 * 365.25));
+          
+          return `
+            <div style="padding: 10px; background: rgba(15, 23, 42, 0.95); border-radius: 8px; border: 1px solid rgba(100, 255, 218, 0.3);">
+              <strong style="color: #64ffda; font-size: 14px;">${item.content}</strong><br>
+              <span style="color: #e2e8f0;">Released: ${startDate}</span><br>
+              <span style="color: #e2e8f0;">Peak Era: ${endDate}</span><br>
+              <span style="color: #a78bfa;">Duration: ~${duration} years</span>
+            </div>
+          `;
         }
       },
-      zoomMin: 1000 * 60 * 60 * 24 * 30 * 6,
-      zoomMax: 1000 * 60 * 60 * 24 * 365 * 20,
-      maxHeight: 450
+      zoomMin: 1000 * 60 * 60 * 24 * 365,
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 60,
+      maxHeight: 600,
+      minHeight: 600,
+      verticalScroll: true,
+      horizontalScroll: true,
+      selectable: true,
+      multiselect: false,
+      editable: false
     };
 
     const timeline = new vis.Timeline(container);
     timeline.setOptions(options);
     timeline.setItems(allItems);
 
-    const start = new Date(1980, 0, 1);
-    const end = new Date(2030, 0, 1);
-    timeline.setWindow(start, end, { animation: false });
+    // Set initial window to show gaming history
+    const start = new Date(1970, 0, 1);
+    const end = new Date(2025, 0, 1);
+    timeline.setWindow(start, end, { animation: true });
+
+    // Add click event for better interactivity
+    timeline.on('select', function (event) {
+      const selectedItems = event.items;
+      if (selectedItems.length > 0) {
+        const item = allItems.get(selectedItems[0]);
+        console.log('Selected game:', item.content);
+      }
+    });
+
+    // Responsive handling
+    window.addEventListener('resize', function() {
+      timeline.redraw();
+    });
   </script>
 </body>
 </html>
