@@ -100,6 +100,27 @@
       border-radius: 0.5rem;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(5px);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+      border: 2px solid transparent;
+    }
+    
+    .legend-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .legend-item.active {
+      border-color: rgba(100, 255, 218, 0.6);
+      background: rgba(100, 255, 218, 0.15);
+      box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+    }
+    
+    .legend-item.inactive {
+      opacity: 0.4;
+      background: rgba(255, 255, 255, 0.05);
     }
     
     .legend-color {
@@ -107,6 +128,16 @@
       height: 16px;
       border-radius: 0.25rem;
       border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .legend-item.all {
+      background: linear-gradient(135deg, #64ffda, #a78bfa);
+      color: #0f172a;
+      font-weight: bold;
+    }
+    
+    .legend-item.all:hover {
+      background: linear-gradient(135deg, #4fd1c7, #9f7aea);
     }
   </style>
 </head>
@@ -118,18 +149,19 @@
     <p class="text-center text-gray-300 mt-4 text-lg">Journey through gaming history - from arcade classics to modern masterpieces</p>
     
     <div class="legend">
-      <div class="legend-item"><div class="legend-color fps"></div><span>FPS</span></div>
-      <div class="legend-item"><div class="legend-color rpg"></div><span>RPG</span></div>
-      <div class="legend-item"><div class="legend-color strategy"></div><span>Strategy</span></div>
-      <div class="legend-item"><div class="legend-color adventure"></div><span>Adventure</span></div>
-      <div class="legend-item"><div class="legend-color platformer"></div><span>Platformer</span></div>
-      <div class="legend-item"><div class="legend-color racing"></div><span>Racing</span></div>
-      <div class="legend-item"><div class="legend-color fighting"></div><span>Fighting</span></div>
-      <div class="legend-item"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
-      <div class="legend-item"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
-      <div class="legend-item"><div class="legend-color mobile"></div><span>Mobile</span></div>
-      <div class="legend-item"><div class="legend-color mmo"></div><span>MMO</span></div>
-      <div class="legend-item"><div class="legend-color sports"></div><span>Sports</span></div>
+      <div class="legend-item all active" data-genre="all"><span>🎮 Show All</span></div>
+      <div class="legend-item" data-genre="fps"><div class="legend-color fps"></div><span>FPS</span></div>
+      <div class="legend-item" data-genre="rpg"><div class="legend-color rpg"></div><span>RPG</span></div>
+      <div class="legend-item" data-genre="strategy"><div class="legend-color strategy"></div><span>Strategy</span></div>
+      <div class="legend-item" data-genre="adventure"><div class="legend-color adventure"></div><span>Adventure</span></div>
+      <div class="legend-item" data-genre="platformer"><div class="legend-color platformer"></div><span>Platformer</span></div>
+      <div class="legend-item" data-genre="racing"><div class="legend-color racing"></div><span>Racing</span></div>
+      <div class="legend-item" data-genre="fighting"><div class="legend-color fighting"></div><span>Fighting</span></div>
+      <div class="legend-item" data-genre="puzzle"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
+      <div class="legend-item" data-genre="sandbox"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
+      <div class="legend-item" data-genre="mobile"><div class="legend-color mobile"></div><span>Mobile</span></div>
+      <div class="legend-item" data-genre="mmo"><div class="legend-color mmo"></div><span>MMO</span></div>
+      <div class="legend-item" data-genre="sports"><div class="legend-color sports"></div><span>Sports</span></div>
     </div>
   </div>
   
@@ -292,6 +324,81 @@
     window.addEventListener('resize', function() {
       timeline.redraw();
     });
+
+    // Genre filtering functionality
+    let activeFilters = new Set();
+    let allGames = allItems.get();
+    
+    function updateTimelineFilters() {
+      if (activeFilters.size === 0) {
+        // Show all games when no specific filters are active
+        timeline.setItems(allGames);
+      } else {
+        // Filter games based on active genres
+        const filteredGames = allGames.filter(game => 
+          activeFilters.has(game.className)
+        );
+        timeline.setItems(filteredGames);
+      }
+      timeline.redraw();
+    }
+    
+    function updateLegendAppearance() {
+      const legendItems = document.querySelectorAll('.legend-item');
+      
+      legendItems.forEach(item => {
+        const genre = item.dataset.genre;
+        
+        if (genre === 'all') {
+          // Handle "Show All" button
+          if (activeFilters.size === 0) {
+            item.classList.add('active');
+            item.classList.remove('inactive');
+          } else {
+            item.classList.remove('active');
+            item.classList.add('inactive');
+          }
+        } else {
+          // Handle individual genre buttons
+          if (activeFilters.has(genre)) {
+            item.classList.add('active');
+            item.classList.remove('inactive');
+          } else if (activeFilters.size === 0) {
+            // Show all genres as normal when showing all
+            item.classList.remove('active', 'inactive');
+          } else {
+            // Show as inactive when other genres are selected
+            item.classList.remove('active');
+            item.classList.add('inactive');
+          }
+        }
+      });
+    }
+    
+    // Add click event listeners to legend items
+    document.querySelectorAll('.legend-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const genre = this.dataset.genre;
+        
+        if (genre === 'all') {
+          // Clear all filters and show all games
+          activeFilters.clear();
+        } else {
+          // Toggle the clicked genre
+          if (activeFilters.has(genre)) {
+            activeFilters.delete(genre);
+          } else {
+            activeFilters.add(genre);
+          }
+        }
+        
+        updateLegendAppearance();
+        updateTimelineFilters();
+      });
+    });
+    
+    // Initialize legend appearance
+    updateLegendAppearance();
   </script>
 </body>
 </html>
