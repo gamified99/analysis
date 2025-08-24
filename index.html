@@ -2,229 +2,866 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Gamified | Game Timeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Epic Gaming Timeline | Journey Through Gaming History</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
   <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --dark-gradient: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      --glow-primary: rgba(102, 126, 234, 0.4);
+      --glow-secondary: rgba(245, 87, 108, 0.4);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--dark-gradient);
       color: white;
       min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
     }
-    
-    #timeline {
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 1.5rem;
-      box-shadow: 0 0 50px rgba(100, 255, 218, 0.3), inset 0 0 30px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
-      height: 600px;
-      border: 1px solid rgba(100, 255, 218, 0.2);
-      backdrop-filter: blur(10px);
+
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 255, 198, 0.2) 0%, transparent 50%);
+      z-index: -1;
+      animation: float 20s ease-in-out infinite;
     }
-    
-    .vis-item {
-      border-radius: 0.5rem;
-      padding: 4px 8px;
-      font-weight: 600;
-      font-size: 11px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      transition: all 0.2s ease;
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-20px) rotate(1deg); }
+      66% { transform: translateY(10px) rotate(-1deg); }
     }
-    
-    .vis-item:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-    }
-    
-    .vis-item.vis-selected {
-      background-color: #0ea5e9 !important;
-      border-color: #ffffff !important;
-      color: #ffffff !important;
-      transform: scale(1.1);
-    }
-    
-    /* Game genre colors */
-    .fps         { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-    .rpg         { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
-    .sandbox     { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-    .adventure   { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-    .platformer  { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
-    .mobile      { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
-    .strategy    { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; }
-    .racing      { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
-    .fighting    { background: linear-gradient(135deg, #be123c, #9f1239); color: white; }
-    .puzzle      { background: linear-gradient(135deg, #84cc16, #65a30d); color: white; }
-    .mmo         { background: linear-gradient(135deg, #a855f7, #9333ea); color: white; }
-    .sports      { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
-    
-    .vis-time-axis .vis-text { 
-      color: #e2e8f0; 
-      font-weight: 500;
-    }
-    
-    .vis-timeline {
-      border: none;
-    }
-    
-    .vis-panel.vis-center {
-      border-left: 1px solid rgba(100, 255, 218, 0.2);
-      border-right: 1px solid rgba(100, 255, 218, 0.2);
-    }
-    
-    .header-container {
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(10px);
-      border-radius: 1rem;
+
+    /* Main container with glassmorphism */
+    .main-container {
+      backdrop-filter: blur(20px);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      margin: 1rem;
       padding: 2rem;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    /* Header with enhanced styling */
+    .header-container {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 3rem 2rem;
       margin-bottom: 2rem;
-      border: 1px solid rgba(100, 255, 218, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
     }
-    
+
+    .header-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    }
+
+    .main-title {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 900;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+      text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+      animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+      from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.4)); }
+      to { filter: drop-shadow(0 0 40px rgba(245, 87, 108, 0.6)); }
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.25rem;
+      font-weight: 400;
+      margin-bottom: 2rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Enhanced Timeline Container */
+    .timeline-container {
+      position: relative;
+      background: linear-gradient(135deg, 
+        rgba(15, 23, 42, 0.9) 0%, 
+        rgba(30, 41, 59, 0.7) 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 50px rgba(100, 255, 218, 0.2);
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    #timeline {
+      height: 700px;
+      width: 100%;
+      border-radius: 20px;
+    }
+
+    /* Enhanced timeline items */
+    .vis-item {
+      border-radius: 8px !important;
+      padding: 6px 12px !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      border: 2px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      backdrop-filter: blur(10px) !important;
+      position: relative !important;
+    }
+
+    .vis-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 8px;
+      background: inherit;
+      opacity: 0.8;
+      z-index: -1;
+    }
+
+    .vis-item:hover {
+      transform: scale(1.08) translateY(-2px) !important;
+      box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.3) !important;
+      z-index: 1000 !important;
+      border-color: rgba(255, 255, 255, 0.6) !important;
+    }
+
+    .vis-item.vis-selected {
+      transform: scale(1.12) translateY(-3px) !important;
+      border-color: #ffffff !important;
+      box-shadow: 
+        0 12px 30px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(255, 255, 255, 0.4) !important;
+    }
+
+    /* Enhanced genre colors with better gradients */
+    .fps { 
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #d63031 100%) !important;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4) !important;
+    }
+    .rpg { 
+      background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 50%, #5f3dc4 100%) !important;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4) !important;
+    }
+    .sandbox { 
+      background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 50%, #e17055 100%) !important;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4) !important;
+    }
+    .adventure { 
+      background: linear-gradient(135deg, #00b894 0%, #00a085 50%, #008f7a 100%) !important;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4) !important;
+    }
+    .platformer { 
+      background: linear-gradient(135deg, #0984e3 0%, #74b9ff 50%, #0066cc 100%) !important;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.4) !important;
+    }
+    .mobile { 
+      background: linear-gradient(135deg, #00cec9 0%, #1dd1a1 50%, #00b894 100%) !important;
+      box-shadow: 0 4px 16px rgba(20, 184, 166, 0.4) !important;
+    }
+    .strategy { 
+      background: linear-gradient(135deg, #6c5ce7 0%, #5f39cc 50%, #4834d4 100%) !important;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4) !important;
+    }
+    .racing { 
+      background: linear-gradient(135deg, #ff7675 0%, #fd79a8 50%, #e84393 100%) !important;
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4) !important;
+    }
+    .fighting { 
+      background: linear-gradient(135deg, #d63031 0%, #c44569 50%, #8e44ad 100%) !important;
+      box-shadow: 0 4px 16px rgba(190, 18, 60, 0.4) !important;
+    }
+    .puzzle { 
+      background: linear-gradient(135deg, #a4b0be 0%, #57606f 50%, #2f3542 100%) !important;
+      box-shadow: 0 4px 16px rgba(132, 204, 22, 0.4) !important;
+    }
+    .mmo { 
+      background: linear-gradient(135deg, #e17055 0%, #d63031 50%, #74b9ff 100%) !important;
+      box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4) !important;
+    }
+    .sports { 
+      background: linear-gradient(135deg, #55a3ff 0%, #003d82 50%, #1e3799 100%) !important;
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4) !important;
+    }
+
+    /* Enhanced timeline axis styling */
+    .vis-time-axis .vis-text { 
+      color: #e2e8f0 !important; 
+      font-weight: 600 !important;
+      font-size: 13px !important;
+    }
+
+    .vis-timeline {
+      border: none !important;
+      background: transparent !important;
+    }
+
+    .vis-panel.vis-center {
+      border-left: 1px solid rgba(100, 255, 218, 0.3) !important;
+      border-right: 1px solid rgba(100, 255, 218, 0.3) !important;
+      background: rgba(15, 23, 42, 0.2) !important;
+    }
+
+    /* Enhanced legend with better styling */
     .legend {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 1rem;
-      justify-content: center;
-      margin-top: 1rem;
+      margin-top: 2rem;
     }
-    
+
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(5px);
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
-    
+
+    .legend-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
     .legend-color {
-      width: 16px;
-      height: 16px;
-      border-radius: 0.25rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .legend-text {
+      font-weight: 500;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Controls panel */
+    .controls-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 16px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: rgba(100, 255, 218, 0.6);
+      box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+    }
+
+    .search-box::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: rgba(102, 126, 234, 0.6);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Stats panel */
+    .stats-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 0.5rem;
+    }
+
+    /* Loading animation */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--dark-gradient);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(102, 126, 234, 0.2);
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 2rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #667eea;
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    /* Enhanced animations */
+    .main-container {
+      animation: containerSlideIn 1s ease-out;
+    }
+
+    @keyframes containerSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .timeline-container {
+      animation: timelineSlideIn 1.2s ease-out 0.3s both;
+    }
+
+    @keyframes timelineSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Error handling styles */
+    .error-message {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      color: #fca5a5;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+      animation: slideInError 0.3s ease-out;
+    }
+
+    @keyframes slideInError {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Integration-ready component styles */
+    .gaming-timeline-widget {
+      width: 100%;
+      min-height: 600px;
+      position: relative;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Keyboard shortcuts help */
+    .keyboard-help {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      color: #e2e8f0;
+      font-size: 12px;
+      max-width: 250px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+    }
+
+    .keyboard-help.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .keyboard-help h4 {
+      color: #64ffda;
+      margin-bottom: 0.5rem;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .keyboard-help ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .keyboard-help li {
+      margin-bottom: 0.25rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .keyboard-help kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: monospace;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .main-container {
+        margin: 0.5rem;
+        padding: 1rem;
+      }
+      
+      .header-container {
+        padding: 2rem 1rem;
+      }
+      
+      .main-title {
+        font-size: 2.5rem;
+      }
+      
+      .legend {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+      }
+      
+      .controls-panel {
+        flex-direction: column;
+      }
+      
+      .search-box {
+        min-width: auto;
+      }
+      
+      #timeline {
+        height: 500px;
+      }
+
+      .keyboard-help {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-title {
+        font-size: 2rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+      }
+      
+      .legend {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      }
+      
+      #timeline {
+        height: 400px;
+      }
+
+      .stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
 </head>
-<body class="p-6">
-  <div class="header-container">
-    <h1 class="text-6xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 drop-shadow-lg">
-      🎮 Ultimate Gaming Timeline
-    </h1>
-    <p class="text-center text-gray-300 mt-4 text-lg">Journey through gaming history - from arcade classics to modern masterpieces</p>
-    
-    <div class="legend">
-      <div class="legend-item"><div class="legend-color fps"></div><span>FPS</span></div>
-      <div class="legend-item"><div class="legend-color rpg"></div><span>RPG</span></div>
-      <div class="legend-item"><div class="legend-color strategy"></div><span>Strategy</span></div>
-      <div class="legend-item"><div class="legend-color adventure"></div><span>Adventure</span></div>
-      <div class="legend-item"><div class="legend-color platformer"></div><span>Platformer</span></div>
-      <div class="legend-item"><div class="legend-color racing"></div><span>Racing</span></div>
-      <div class="legend-item"><div class="legend-color fighting"></div><span>Fighting</span></div>
-      <div class="legend-item"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
-      <div class="legend-item"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
-      <div class="legend-item"><div class="legend-color mobile"></div><span>Mobile</span></div>
-      <div class="legend-item"><div class="legend-color mmo"></div><span>MMO</span></div>
-      <div class="legend-item"><div class="legend-color sports"></div><span>Sports</span></div>
+<body>
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">
+      Loading Epic Gaming Timeline...<br>
+      <small style="font-size: 0.9rem; opacity: 0.8;">Preparing 70 legendary games across 52 years</small>
     </div>
   </div>
-  
-  <div id="timeline"></div>
+
+  <!-- Keyboard shortcuts help -->
+  <div class="keyboard-help" id="keyboard-help">
+    <h4>⌨️ Keyboard Shortcuts</h4>
+    <ul>
+      <li><span>Search</span> <kbd>Ctrl/Cmd + F</kbd></li>
+      <li><span>Reset View</span> <kbd>Ctrl/Cmd + R</kbd></li>
+      <li><span>Classic Era</span> <kbd>Alt + 1</kbd></li>
+      <li><span>Modern Era</span> <kbd>Alt + 2</kbd></li>
+      <li><span>Still Active</span> <kbd>Alt + 3</kbd></li>
+    </ul>
+    <small style="opacity: 0.7; margin-top: 0.5rem; display: block;">Double-click any game to focus on its era</small>
+  </div>
+
+  <!-- Error message container -->
+  <div class="error-message" id="error-message">
+    <strong>Oops!</strong> Something went wrong loading the timeline. Please refresh the page to try again.
+  </div>
+
+  <div class="main-container">
+    <div class="header-container">
+      <h1 class="main-title">
+        <i class="fas fa-gamepad"></i> Epic Gaming Timeline
+      </h1>
+      <p class="subtitle">Journey through gaming history - from arcade classics to modern masterpieces</p>
+      
+      <div class="stats-panel">
+        <div class="stat-card">
+          <div class="stat-number" id="total-games">70</div>
+          <div class="stat-label">Total Games</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="total-years">52</div>
+          <div class="stat-label">Years Covered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="total-genres">12</div>
+          <div class="stat-label">Game Genres</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="ongoing-games">28</div>
+          <div class="stat-label">Still Active</div>
+        </div>
+      </div>
+
+      <div class="controls-panel">
+        <input type="text" class="search-box" id="search-input" placeholder="🔍 Search games, genres, or years...">
+        <button class="filter-btn active" data-filter="all">All Games</button>
+        <button class="filter-btn" data-filter="classic">Classics</button>
+        <button class="filter-btn" data-filter="modern">Modern</button>
+        <button class="filter-btn" data-filter="ongoing">Still Active</button>
+        <button class="filter-btn" id="reset-view">🎯 Reset View</button>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item" data-genre="fps">
+          <div class="legend-color fps"></div>
+          <span class="legend-text">FPS</span>
+        </div>
+        <div class="legend-item" data-genre="rpg">
+          <div class="legend-color rpg"></div>
+          <span class="legend-text">RPG</span>
+        </div>
+        <div class="legend-item" data-genre="strategy">
+          <div class="legend-color strategy"></div>
+          <span class="legend-text">Strategy</span>
+        </div>
+        <div class="legend-item" data-genre="adventure">
+          <div class="legend-color adventure"></div>
+          <span class="legend-text">Adventure</span>
+        </div>
+        <div class="legend-item" data-genre="platformer">
+          <div class="legend-color platformer"></div>
+          <span class="legend-text">Platformer</span>
+        </div>
+        <div class="legend-item" data-genre="racing">
+          <div class="legend-color racing"></div>
+          <span class="legend-text">Racing</span>
+        </div>
+        <div class="legend-item" data-genre="fighting">
+          <div class="legend-color fighting"></div>
+          <span class="legend-text">Fighting</span>
+        </div>
+        <div class="legend-item" data-genre="puzzle">
+          <div class="legend-color puzzle"></div>
+          <span class="legend-text">Puzzle</span>
+        </div>
+        <div class="legend-item" data-genre="sandbox">
+          <div class="legend-color sandbox"></div>
+          <span class="legend-text">Sandbox</span>
+        </div>
+        <div class="legend-item" data-genre="mobile">
+          <div class="legend-color mobile"></div>
+          <span class="legend-text">Mobile</span>
+        </div>
+        <div class="legend-item" data-genre="mmo">
+          <div class="legend-color mmo"></div>
+          <span class="legend-text">MMO</span>
+        </div>
+        <div class="legend-item" data-genre="sports">
+          <div class="legend-color sports"></div>
+          <span class="legend-text">Sports</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="timeline-container">
+      <div id="timeline"></div>
+    </div>
+  </div>
 
   <script>
-    const container = document.getElementById('timeline');
-    const allItems = new vis.DataSet([
+    // Enhanced game data with richer metadata
+    const gamesData = [
       // Classic Arcade Era (1970s-1980s)
-      { id: 1, content: 'Pong', start: '1972-11-29', end: '1975-11-29', className: 'sports' },
-      { id: 2, content: 'Space Invaders', start: '1978-06-01', end: '1982-06-01', className: 'fps' },
-      { id: 3, content: 'Pac-Man', start: '1980-05-22', end: '1985-05-22', className: 'puzzle' },
-      { id: 4, content: 'Donkey Kong', start: '1981-07-09', end: '1985-07-09', className: 'platformer' },
-      { id: 5, content: 'Tetris', start: '1984-06-06', end: '2024-06-06', className: 'puzzle' },
-      { id: 6, content: 'Super Mario Bros.', start: '1985-09-13', end: '2024-09-13', className: 'platformer' },
+      { id: 1, title: 'Pong', start: '1972-11-29', end: '1975-11-29', genre: 'sports', platform: 'Arcade', developer: 'Atari', impact: 'First commercially successful video game', era: 'classic' },
+      { id: 2, title: 'Space Invaders', start: '1978-06-01', end: '1982-06-01', genre: 'fps', platform: 'Arcade', developer: 'Taito', impact: 'Popularized the shoot em up genre', era: 'classic' },
+      { id: 3, title: 'Pac-Man', start: '1980-05-22', end: '1985-05-22', genre: 'puzzle', platform: 'Arcade', developer: 'Namco', impact: 'First gaming mascot and cultural icon', era: 'classic' },
+      { id: 4, title: 'Donkey Kong', start: '1981-07-09', end: '1985-07-09', genre: 'platformer', platform: 'Arcade', developer: 'Nintendo', impact: 'Introduced Mario and Jumpman concept', era: 'classic' },
+      { id: 5, title: 'Tetris', start: '1984-06-06', end: '2024-06-06', genre: 'puzzle', platform: 'Multi-platform', developer: 'Alexey Pajitnov', impact: 'Most ported puzzle game ever', era: 'classic', ongoing: true },
+      { id: 6, title: 'Super Mario Bros.', start: '1985-09-13', end: '2024-09-13', genre: 'platformer', platform: 'NES', developer: 'Nintendo', impact: 'Revolutionized platform gaming', era: 'classic', ongoing: true },
       
       // Golden Age of Gaming (1990s)
-      { id: 7, content: 'Super Mario World', start: '1990-11-21', end: '1995-11-21', className: 'platformer' },
-      { id: 8, content: 'Sonic the Hedgehog', start: '1991-06-23', end: '1996-06-23', className: 'platformer' },
-      { id: 9, content: 'Street Fighter II', start: '1991-02-01', end: '1996-02-01', className: 'fighting' },
-      { id: 10, content: 'Mortal Kombat', start: '1992-10-08', end: '1997-10-08', className: 'fighting' },
-      { id: 11, content: 'DOOM', start: '1993-12-10', end: '1998-12-10', className: 'fps' },
-      { id: 12, content: 'Super Metroid', start: '1994-03-19', end: '1999-03-19', className: 'adventure' },
-      { id: 13, content: 'Final Fantasy VII', start: '1997-01-31', end: '2002-01-31', className: 'rpg' },
-      { id: 14, content: 'GoldenEye 007', start: '1997-08-25', end: '2002-08-25', className: 'fps' },
-      { id: 15, content: 'Half-Life', start: '1998-11-19', end: '2003-11-19', className: 'fps' },
-      { id: 16, content: 'The Legend of Zelda: Ocarina of Time', start: '1998-11-21', end: '2003-11-21', className: 'adventure' },
-      { id: 17, content: 'StarCraft', start: '1998-03-31', end: '2024-03-31', className: 'strategy' },
+      { id: 7, title: 'Super Mario World', start: '1990-11-21', end: '1995-11-21', genre: 'platformer', platform: 'SNES', developer: 'Nintendo', impact: 'Perfected 2D platforming', era: 'classic' },
+      { id: 8, title: 'Sonic the Hedgehog', start: '1991-06-23', end: '1996-06-23', genre: 'platformer', platform: 'Sega Genesis', developer: 'Sega', impact: 'Speed-based platforming revolution', era: 'classic' },
+      { id: 9, title: 'Street Fighter II', start: '1991-02-01', end: '1996-02-01', genre: 'fighting', platform: 'Arcade', developer: 'Capcom', impact: 'Defined modern fighting games', era: 'classic' },
+      { id: 10, title: 'Mortal Kombat', start: '1992-10-08', end: '1997-10-08', genre: 'fighting', platform: 'Arcade', developer: 'Midway', impact: 'Introduced fatalities and game ratings', era: 'classic' },
+      { id: 11, title: 'DOOM', start: '1993-12-10', end: '1998-12-10', genre: 'fps', platform: 'PC', developer: 'id Software', impact: 'Popularized first-person shooters', era: 'classic' },
+      { id: 12, title: 'Super Metroid', start: '1994-03-19', end: '1999-03-19', genre: 'adventure', platform: 'SNES', developer: 'Nintendo', impact: 'Perfected the Metroidvania formula', era: 'classic' },
+      { id: 13, title: 'Final Fantasy VII', start: '1997-01-31', end: '2002-01-31', genre: 'rpg', platform: 'PlayStation', developer: 'Square', impact: 'Brought JRPGs to mainstream', era: 'classic' },
+      { id: 14, title: 'GoldenEye 007', start: '1997-08-25', end: '2002-08-25', genre: 'fps', platform: 'Nintendo 64', developer: 'Rare', impact: 'Revolutionized console FPS multiplayer', era: 'classic' },
+      { id: 15, title: 'Half-Life', start: '1998-11-19', end: '2003-11-19', genre: 'fps', platform: 'PC', developer: 'Valve', impact: 'Cinematic storytelling in FPS', era: 'classic' },
+      { id: 16, title: 'The Legend of Zelda: Ocarina of Time', start: '1998-11-21', end: '2003-11-21', genre: 'adventure', platform: 'Nintendo 64', developer: 'Nintendo', impact: 'Z-targeting and 3D adventure template', era: 'classic' },
+      { id: 17, title: 'StarCraft', start: '1998-03-31', end: '2024-03-31', genre: 'strategy', platform: 'PC', developer: 'Blizzard', impact: 'Esports pioneer and RTS masterpiece', era: 'classic', ongoing: true },
       
       // Early 2000s Revolution
-      { id: 18, content: 'Counter-Strike', start: '2000-11-08', end: '2024-11-08', className: 'fps' },
-      { id: 19, content: 'The Sims', start: '2000-02-04', end: '2010-02-04', className: 'sandbox' },
-      { id: 20, content: 'Grand Theft Auto: Vice City', start: '2002-10-27', end: '2007-10-27', className: 'adventure' },
-      { id: 21, content: 'Halo: Combat Evolved', start: '2001-11-15', end: '2006-11-15', className: 'fps' },
-      { id: 22, content: 'World of Warcraft', start: '2004-11-23', end: '2024-11-23', className: 'mmo' },
-      { id: 23, content: 'Half-Life 2', start: '2004-11-16', end: '2009-11-16', className: 'fps' },
-      { id: 24, content: 'Guitar Hero', start: '2005-11-08', end: '2010-11-08', className: 'puzzle' },
-      { id: 25, content: 'Gears of War', start: '2006-11-07', end: '2011-11-07', className: 'fps' },
-      { id: 26, content: 'Roblox', start: '2006-09-01', end: '2024-09-01', className: 'sandbox' },
+      { id: 18, title: 'Counter-Strike', start: '2000-11-08', end: '2024-11-08', genre: 'fps', platform: 'PC', developer: 'Valve', impact: 'Tactical FPS and esports foundation', era: 'modern', ongoing: true },
+      { id: 19, title: 'The Sims', start: '2000-02-04', end: '2010-02-04', genre: 'sandbox', platform: 'PC', developer: 'Maxis', impact: 'Life simulation genre creation', era: 'modern' },
+      { id: 20, title: 'Grand Theft Auto: Vice City', start: '2002-10-27', end: '2007-10-27', genre: 'adventure', platform: 'Multi-platform', developer: 'Rockstar', impact: 'Open-world crime simulation', era: 'modern' },
+      { id: 21, title: 'Halo: Combat Evolved', start: '2001-11-15', end: '2006-11-15', genre: 'fps', platform: 'Xbox', developer: 'Bungie', impact: 'Console FPS controls perfection', era: 'modern' },
+      { id: 22, title: 'World of Warcraft', start: '2004-11-23', end: '2024-11-23', genre: 'mmo', platform: 'PC', developer: 'Blizzard', impact: 'MMO mainstream adoption', era: 'modern', ongoing: true },
+      { id: 23, title: 'Half-Life 2', start: '2004-11-16', end: '2009-11-16', genre: 'fps', platform: 'PC', developer: 'Valve', impact: 'Physics-based gameplay revolution', era: 'modern' },
+      { id: 24, title: 'Guitar Hero', start: '2005-11-08', end: '2010-11-08', genre: 'puzzle', platform: 'Multi-platform', developer: 'Harmonix', impact: 'Music gaming mainstream breakthrough', era: 'modern' },
+      { id: 25, title: 'Gears of War', start: '2006-11-07', end: '2011-11-07', genre: 'fps', platform: 'Xbox 360', developer: 'Epic Games', impact: 'Cover-based shooting mechanics', era: 'modern' },
+      { id: 26, title: 'Roblox', start: '2006-09-01', end: '2024-09-01', genre: 'sandbox', platform: 'Multi-platform', developer: 'Roblox Corporation', impact: 'User-generated content platform', era: 'modern', ongoing: true },
       
       // Modern Gaming Era (2007-2015)
-      { id: 27, content: 'Call of Duty: Modern Warfare', start: '2007-11-05', end: '2012-11-05', className: 'fps' },
-      { id: 28, content: 'Portal', start: '2007-10-09', end: '2012-10-09', className: 'puzzle' },
-      { id: 29, content: 'Super Mario Galaxy', start: '2007-11-01', end: '2012-11-01', className: 'platformer' },
-      { id: 30, content: 'Minecraft', start: '2009-05-17', end: '2024-05-17', className: 'sandbox' },
-      { id: 31, content: 'Angry Birds', start: '2009-12-11', end: '2019-12-11', className: 'mobile' },
-      { id: 32, content: 'League of Legends', start: '2009-10-27', end: '2024-10-27', className: 'strategy' },
-      { id: 33, content: 'Red Dead Redemption', start: '2010-05-18', end: '2015-05-18', className: 'adventure' },
-      { id: 34, content: 'The Elder Scrolls V: Skyrim', start: '2011-11-11', end: '2024-11-11', className: 'rpg' },
-      { id: 35, content: 'Terraria', start: '2011-05-16', end: '2024-05-16', className: 'sandbox' },
-      { id: 36, content: 'Dark Souls', start: '2011-09-22', end: '2016-09-22', className: 'rpg' },
-      { id: 37, content: 'Clash of Clans', start: '2012-08-02', end: '2024-08-02', className: 'mobile' },
-      { id: 38, content: 'Grand Theft Auto V', start: '2013-09-17', end: '2024-09-17', className: 'adventure' },
-      { id: 39, content: 'The Last of Us', start: '2013-06-14', end: '2018-06-14', className: 'adventure' },
-      { id: 40, content: 'Destiny', start: '2014-09-09', end: '2019-09-09', className: 'fps' },
-      { id: 41, content: 'The Witcher 3: Wild Hunt', start: '2015-05-19', end: '2020-05-19', className: 'rpg' },
+      { id: 27, title: 'Call of Duty: Modern Warfare', start: '2007-11-05', end: '2012-11-05', genre: 'fps', platform: 'Multi-platform', developer: 'Infinity Ward', impact: 'Modern military FPS template', era: 'modern' },
+      { id: 28, title: 'Portal', start: '2007-10-09', end: '2012-10-09', genre: 'puzzle', platform: 'Multi-platform', developer: 'Valve', impact: 'Revolutionary puzzle mechanics', era: 'modern' },
+      { id: 29, title: 'Super Mario Galaxy', start: '2007-11-01', end: '2012-11-01', genre: 'platformer', platform: 'Wii', developer: 'Nintendo', impact: 'Gravity-based 3D platforming', era: 'modern' },
+      { id: 30, title: 'Minecraft', start: '2009-05-17', end: '2024-05-17', genre: 'sandbox', platform: 'Multi-platform', developer: 'Mojang', impact: 'Creative building phenomenon', era: 'modern', ongoing: true },
+      { id: 31, title: 'Angry Birds', start: '2009-12-11', end: '2019-12-11', genre: 'mobile', platform: 'Mobile', developer: 'Rovio', impact: 'Mobile gaming mainstream success', era: 'modern' },
+      { id: 32, title: 'League of Legends', start: '2009-10-27', end: '2024-10-27', genre: 'strategy', platform: 'PC', developer: 'Riot Games', impact: 'MOBA esports domination', era: 'modern', ongoing: true },
+      { id: 33, title: 'Red Dead Redemption', start: '2010-05-18', end: '2015-05-18', genre: 'adventure', platform: 'Multi-platform', developer: 'Rockstar', impact: 'Western open-world excellence', era: 'modern' },
+      { id: 34, title: 'The Elder Scrolls V: Skyrim', start: '2011-11-11', end: '2024-11-11', genre: 'rpg', platform: 'Multi-platform', developer: 'Bethesda', impact: 'Modding community phenomenon', era: 'modern', ongoing: true },
+      { id: 35, title: 'Terraria', start: '2011-05-16', end: '2024-05-16', genre: 'sandbox', platform: 'Multi-platform', developer: 'Re-Logic', impact: '2D sandbox building mastery', era: 'modern', ongoing: true },
+      { id: 36, title: 'Dark Souls', start: '2011-09-22', end: '2016-09-22', genre: 'rpg', platform: 'Multi-platform', developer: 'FromSoftware', impact: 'Challenging gameplay renaissance', era: 'modern' },
+      { id: 37, title: 'Clash of Clans', start: '2012-08-02', end: '2024-08-02', genre: 'mobile', platform: 'Mobile', developer: 'Supercell', impact: 'Mobile strategy gaming leader', era: 'modern', ongoing: true },
+      { id: 38, title: 'Grand Theft Auto V', start: '2013-09-17', end: '2024-09-17', genre: 'adventure', platform: 'Multi-platform', developer: 'Rockstar', impact: 'Open-world perfection', era: 'modern', ongoing: true },
+      { id: 39, title: 'The Last of Us', start: '2013-06-14', end: '2018-06-14', genre: 'adventure', platform: 'PlayStation', developer: 'Naughty Dog', impact: 'Emotional storytelling benchmark', era: 'modern' },
+      { id: 40, title: 'Destiny', start: '2014-09-09', end: '2019-09-09', genre: 'fps', platform: 'Multi-platform', developer: 'Bungie', impact: 'Shared-world shooter innovation', era: 'modern' },
+      { id: 41, title: 'The Witcher 3: Wild Hunt', start: '2015-05-19', end: '2020-05-19', genre: 'rpg', platform: 'Multi-platform', developer: 'CD Projekt RED', impact: 'Open-world RPG excellence', era: 'modern' },
       
       // Current Generation (2016-Present)
-      { id: 42, content: 'Overwatch', start: '2016-05-24', end: '2024-05-24', className: 'fps' },
-      { id: 43, content: 'Pokémon GO', start: '2016-07-06', end: '2024-07-06', className: 'mobile' },
-      { id: 44, content: 'The Legend of Zelda: Breath of the Wild', start: '2017-03-03', end: '2024-03-03', className: 'adventure' },
-      { id: 45, content: 'Fortnite Battle Royale', start: '2017-07-21', end: '2024-07-21', className: 'fps' },
-      { id: 46, content: 'Hollow Knight', start: '2017-02-24', end: '2022-02-24', className: 'platformer' },
-      { id: 47, content: 'PlayerUnknown\'s Battlegrounds', start: '2017-03-23', end: '2022-03-23', className: 'fps' },
-      { id: 48, content: 'Super Mario Odyssey', start: '2017-10-27', end: '2022-10-27', className: 'platformer' },
-      { id: 49, content: 'God of War (2018)', start: '2018-04-20', end: '2023-04-20', className: 'adventure' },
-      { id: 50, content: 'Red Dead Redemption 2', start: '2018-10-26', end: '2023-10-26', className: 'adventure' },
-      { id: 51, content: 'Among Us', start: '2018-06-15', end: '2024-06-15', className: 'strategy' },
-      { id: 52, content: 'Super Smash Bros. Ultimate', start: '2018-12-07', end: '2024-12-07', className: 'fighting' },
-      { id: 53, content: 'Celeste', start: '2018-01-25', end: '2023-01-25', className: 'platformer' },
-      { id: 54, content: 'Cyberpunk 2077', start: '2020-12-10', end: '2024-12-10', className: 'rpg' },
-      { id: 55, content: 'Valorant', start: '2020-06-02', end: '2024-06-02', className: 'fps' },
-      { id: 56, content: 'Fall Guys', start: '2020-08-04', end: '2024-08-04', className: 'platformer' },
-      { id: 57, content: 'Genshin Impact', start: '2020-09-28', end: '2024-09-28', className: 'rpg' },
-      { id: 58, content: 'It Takes Two', start: '2021-03-26', end: '2024-03-26', className: 'adventure' },
-      { id: 59, content: 'Elden Ring', start: '2022-02-25', end: '2024-02-25', className: 'rpg' },
-      { id: 60, content: 'Wordle', start: '2021-10-01', end: '2024-10-01', className: 'puzzle' },
+      { id: 42, title: 'Overwatch', start: '2016-05-24', end: '2024-05-24', genre: 'fps', platform: 'Multi-platform', developer: 'Blizzard', impact: 'Hero shooter mainstream success', era: 'current', ongoing: true },
+      { id: 43, title: 'Pokémon GO', start: '2016-07-06', end: '2024-07-06', genre: 'mobile', platform: 'Mobile', developer: 'Niantic', impact: 'AR gaming breakthrough', era: 'current', ongoing: true },
+      { id: 44, title: 'The Legend of Zelda: Breath of the Wild', start: '2017-03-03', end: '2024-03-03', genre: 'adventure', platform: 'Nintendo Switch', developer: 'Nintendo', impact: 'Open-world Zelda revolution', era: 'current', ongoing: true },
+      { id: 45, title: 'Fortnite Battle Royale', start: '2017-07-21', end: '2024-07-21', genre: 'fps', platform: 'Multi-platform', developer: 'Epic Games', impact: 'Battle royale cultural phenomenon', era: 'current', ongoing: true },
+      { id: 46, title: 'Hollow Knight', start: '2017-02-24', end: '2022-02-24', genre: 'platformer', platform: 'Multi-platform', developer: 'Team Cherry', impact: 'Indie Metroidvania masterpiece', era: 'current' },
+      { id: 47, title: 'PlayerUnknown\'s Battlegrounds', start: '2017-03-23', end: '2022-03-23', genre: 'fps', platform: 'Multi-platform', developer: 'PUBG Corporation', impact: 'Battle royale genre pioneer', era: 'current' },
+      { id: 48, title: 'Super Mario Odyssey', start: '2017-10-27', end: '2022-10-27', genre: 'platformer', platform: 'Nintendo Switch', developer: 'Nintendo', impact: '3D Mario evolution', era: 'current' },
+      { id: 49, title: 'God of War (2018)', start: '2018-04-20', end: '2023-04-20', genre: 'adventure', platform: 'PlayStation', developer: 'Santa Monica Studio', impact: 'Franchise reinvention success', era: 'current' },
+      { id: 50, title: 'Red Dead Redemption 2', start: '2018-10-26', end: '2023-10-26', genre: 'adventure', platform: 'Multi-platform', developer: 'Rockstar', impact: 'Immersive world detail peak', era: 'current' },
+      { id: 51, title: 'Among Us', start: '2018-06-15', end: '2024-06-15', genre: 'strategy', platform: 'Multi-platform', developer: 'InnerSloth', impact: 'Social deduction viral hit', era: 'current', ongoing: true },
+      { id: 52, title: 'Super Smash Bros. Ultimate', start: '2018-12-07', end: '2024-12-07', genre: 'fighting', platform: 'Nintendo Switch', developer: 'Nintendo', impact: 'Fighting game celebration', era: 'current', ongoing: true },
+      { id: 53, title: 'Celeste', start: '2018-01-25', end: '2023-01-25', genre: 'platformer', platform: 'Multi-platform', developer: 'Maddy Makes Games', impact: 'Precision platforming perfection', era: 'current' },
+      { id: 54, title: 'Cyberpunk 2077', start: '2020-12-10', end: '2024-12-10', genre: 'rpg', platform: 'Multi-platform', developer: 'CD Projekt RED', impact: 'Ambitious RPG with rocky launch', era: 'current', ongoing: true },
+      { id: 55, title: 'Valorant', start: '2020-06-02', end: '2024-06-02', genre: 'fps', platform: 'PC', developer: 'Riot Games', impact: 'Tactical shooter esports focus', era: 'current', ongoing: true },
+      { id: 56, title: 'Fall Guys', start: '2020-08-04', end: '2024-08-04', genre: 'platformer', platform: 'Multi-platform', developer: 'Mediatonic', impact: 'Party platformer viral success', era: 'current', ongoing: true },
+      { id: 57, title: 'Genshin Impact', start: '2020-09-28', end: '2024-09-28', genre: 'rpg', platform: 'Multi-platform', developer: 'miHoYo', impact: 'Gacha RPG mainstream breakthrough', era: 'current', ongoing: true },
+      { id: 58, title: 'It Takes Two', start: '2021-03-26', end: '2024-03-26', genre: 'adventure', platform: 'Multi-platform', developer: 'Hazelight Studios', impact: 'Co-op gaming excellence', era: 'current', ongoing: true },
+      { id: 59, title: 'Elden Ring', start: '2022-02-25', end: '2024-02-25', genre: 'rpg', platform: 'Multi-platform', developer: 'FromSoftware', impact: 'Open-world Souls perfection', era: 'current', ongoing: true },
+      { id: 60, title: 'Wordle', start: '2021-10-01', end: '2024-10-01', genre: 'puzzle', platform: 'Web/Mobile', developer: 'Josh Wardle', impact: 'Word puzzle social phenomenon', era: 'current', ongoing: true },
       
       // Racing Games
-      { id: 61, content: 'Gran Turismo', start: '1997-12-23', end: '2002-12-23', className: 'racing' },
-      { id: 62, content: 'Need for Speed: Underground', start: '2003-11-17', end: '2008-11-17', className: 'racing' },
-      { id: 63, content: 'Mario Kart Wii', start: '2008-04-10', end: '2013-04-10', className: 'racing' },
-      { id: 64, content: 'Forza Horizon', start: '2012-10-23', end: '2024-10-23', className: 'racing' },
+      { id: 61, title: 'Gran Turismo', start: '1997-12-23', end: '2002-12-23', genre: 'racing', platform: 'PlayStation', developer: 'Polyphony Digital', impact: 'Racing simulation standard', era: 'classic' },
+      { id: 62, title: 'Need for Speed: Underground', start: '2003-11-17', end: '2008-11-17', genre: 'racing', platform: 'Multi-platform', developer: 'EA Black Box', impact: 'Street racing culture game', era: 'modern' },
+      { id: 63, title: 'Mario Kart Wii', start: '2008-04-10', end: '2013-04-10', genre: 'racing', platform: 'Wii', developer: 'Nintendo', impact: 'Motion control racing success', era: 'modern' },
+      { id: 64, title: 'Forza Horizon', start: '2012-10-23', end: '2024-10-23', genre: 'racing', platform: 'Xbox/PC', developer: 'Playground Games', impact: 'Open-world racing excellence', era: 'modern', ongoing: true },
       
       // Strategy Games
-      { id: 65, content: 'Age of Empires II', start: '1999-09-30', end: '2024-09-30', className: 'strategy' },
-      { id: 66, content: 'Civilization VI', start: '2016-10-21', end: '2024-10-21', className: 'strategy' },
-      { id: 67, content: 'Chess.com', start: '2007-01-01', end: '2024-01-01', className: 'strategy' },
+      { id: 65, title: 'Age of Empires II', start: '1999-09-30', end: '2024-09-30', genre: 'strategy', platform: 'PC', developer: 'Ensemble Studios', impact: 'RTS historical strategy peak', era: 'classic', ongoing: true },
+      { id: 66, title: 'Civilization VI', start: '2016-10-21', end: '2024-10-21', genre: 'strategy', platform: 'Multi-platform', developer: 'Firaxis Games', impact: 'Turn-based strategy evolution', era: 'current', ongoing: true },
+      { id: 67, title: 'Chess.com', start: '2007-01-01', end: '2024-01-01', genre: 'strategy', platform: 'Web/Mobile', developer: 'Chess.com', impact: 'Digital chess revolution', era: 'modern', ongoing: true },
       
       // Sports Games
-      { id: 68, content: 'FIFA 98', start: '1997-06-01', end: '2002-06-01', className: 'sports' },
-      { id: 69, content: 'NBA 2K', start: '1999-11-10', end: '2024-11-10', className: 'sports' },
-      { id: 70, content: 'Rocket League', start: '2015-07-07', end: '2024-07-07', className: 'sports' }
-    ]);
+      { id: 68, title: 'FIFA 98', start: '1997-06-01', end: '2002-06-01', genre: 'sports', platform: 'Multi-platform', developer: 'EA Sports', impact: 'Soccer simulation standard', era: 'classic' },
+      { id: 69, title: 'NBA 2K', start: '1999-11-10', end: '2024-11-10', genre: 'sports', platform: 'Multi-platform', developer: '2K Sports', impact: 'Basketball simulation leader', era: 'classic', ongoing: true },
+      { id: 70, title: 'Rocket League', start: '2015-07-07', end: '2024-07-07', genre: 'sports', platform: 'Multi-platform', developer: 'Psyonix', impact: 'Car soccer innovation', era: 'modern', ongoing: true }
+    ];
 
+    // Create timeline items from enhanced data
+    const createTimelineItems = (games) => {
+      return games.map(game => ({
+        id: game.id,
+        content: game.title,
+        start: game.start,
+        end: game.end,
+        className: game.genre,
+        title: game.title,
+        genre: game.genre,
+        platform: game.platform,
+        developer: game.developer,
+        impact: game.impact,
+        era: game.era,
+        ongoing: game.ongoing || false
+      }));
+    };
+
+    const container = document.getElementById('timeline');
+    const allItems = new vis.DataSet(createTimelineItems(gamesData));
+
+    // Enhanced timeline options with better performance and styling
     const options = {
       width: '100%',
       height: '100%',
@@ -232,8 +869,8 @@
       stackSubgroups: true,
       margin: {
         item: {
-          horizontal: 10,
-          vertical: 8
+          horizontal: 12,
+          vertical: 10
         }
       },
       showMajorLabels: true,
@@ -242,56 +879,456 @@
       type: 'range',
       tooltip: {
         followMouse: true,
+        delay: 100,
         template: function (item) {
-          const startDate = new Date(item.start).toDateString();
-          const endDate = item.end ? new Date(item.end).toDateString() : 'Ongoing';
-          const duration = item.end ? 
-            Math.round((new Date(item.end) - new Date(item.start)) / (1000 * 60 * 60 * 24 * 365.25)) : 
-            Math.round((new Date() - new Date(item.start)) / (1000 * 60 * 60 * 24 * 365.25));
+          // Find the game data for richer tooltip
+          const game = gamesData.find(g => g.id === item.id);
+          if (!game) return '';
+          
+          const startDate = new Date(game.start).toLocaleDateString('en-US', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+          });
+          const endDate = game.end ? 
+            new Date(game.end).toLocaleDateString('en-US', { 
+              year: 'numeric', month: 'long', day: 'numeric' 
+            }) : 'Still Active';
+          
+          const duration = game.end ? 
+            Math.round((new Date(game.end) - new Date(game.start)) / (1000 * 60 * 60 * 24 * 365.25)) : 
+            Math.round((new Date() - new Date(game.start)) / (1000 * 60 * 60 * 24 * 365.25));
+          
+          const statusBadge = game.ongoing ? 
+            '<span style="background: linear-gradient(135deg, #10b981, #059669); padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">🔴 LIVE</span>' : 
+            '<span style="background: linear-gradient(135deg, #6b7280, #4b5563); padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">📚 LEGACY</span>';
           
           return `
-            <div style="padding: 10px; background: rgba(15, 23, 42, 0.95); border-radius: 8px; border: 1px solid rgba(100, 255, 218, 0.3);">
-              <strong style="color: #64ffda; font-size: 14px;">${item.content}</strong><br>
-              <span style="color: #e2e8f0;">Released: ${startDate}</span><br>
-              <span style="color: #e2e8f0;">Peak Era: ${endDate}</span><br>
-              <span style="color: #a78bfa;">Duration: ~${duration} years</span>
+            <div style="
+              padding: 16px; 
+              background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%); 
+              border-radius: 16px; 
+              border: 2px solid rgba(100, 255, 218, 0.4);
+              backdrop-filter: blur(20px);
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+              min-width: 320px;
+              max-width: 400px;
+              font-family: 'Inter', sans-serif;
+            ">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <strong style="color: #64ffda; font-size: 18px; font-weight: 700; flex: 1;">${game.title}</strong>
+                ${statusBadge}
+              </div>
+              <div style="margin-bottom: 8px;">
+                <span style="color: #a78bfa; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">${game.genre.toUpperCase()}</span>
+                <span style="color: #64748b; margin: 0 8px;">•</span>
+                <span style="color: #e2e8f0; font-size: 13px;">${game.platform}</span>
+              </div>
+              <div style="margin-bottom: 12px; color: #cbd5e1; font-size: 13px; line-height: 1.4;">
+                <strong style="color: #f1f5f9;">Developer:</strong> ${game.developer}
+              </div>
+              <div style="margin-bottom: 12px; color: #94a3b8; font-size: 12px; line-height: 1.5; font-style: italic;">
+                "${game.impact}"
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(100, 255, 218, 0.2);">
+                <div style="color: #e2e8f0; font-size: 12px;">
+                  <strong style="color: #64ffda;">Released:</strong><br>${startDate}
+                </div>
+                <div style="color: #e2e8f0; font-size: 12px;">
+                  <strong style="color: #64ffda;">Peak Era:</strong><br>${endDate}
+                </div>
+              </div>
+              <div style="margin-top: 8px; text-align: center;">
+                <span style="color: #a78bfa; font-weight: 600; font-size: 14px;">⏱️ ${duration} years of impact</span>
+              </div>
             </div>
           `;
         }
       },
-      zoomMin: 1000 * 60 * 60 * 24 * 365,
-      zoomMax: 1000 * 60 * 60 * 24 * 365 * 60,
-      maxHeight: 600,
-      minHeight: 600,
+      zoomMin: 1000 * 60 * 60 * 24 * 365 * 2, // 2 years
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 60, // 60 years
+      maxHeight: 700,
+      minHeight: 700,
       verticalScroll: true,
       horizontalScroll: true,
       selectable: true,
       multiselect: false,
-      editable: false
+      editable: false,
+      format: {
+        minorLabels: {
+          year: 'YYYY',
+          month: 'MMM',
+          week: 'w',
+          day: 'D',
+          hour: 'HH',
+          minute: 'HH:mm',
+          second: 'ss',
+          millisecond: 'SSS'
+        },
+        majorLabels: {
+          year: 'YYYY',
+          month: 'MMMM YYYY',
+          week: 'MMMM YYYY',
+          day: 'MMMM YYYY',
+          hour: 'dddd, MMMM Do YYYY',
+          minute: 'ddd, MMMM Do YYYY',
+          second: 'ddd, MMMM Do YYYY',
+          millisecond: 'ddd, MMMM Do YYYY'
+        }
+      }
     };
 
+    // Initialize timeline
     const timeline = new vis.Timeline(container);
     timeline.setOptions(options);
     timeline.setItems(allItems);
 
-    // Set initial window to show gaming history
-    const start = new Date(1970, 0, 1);
-    const end = new Date(2025, 0, 1);
-    timeline.setWindow(start, end, { animation: true });
+    // Timeline state management
+    let currentFilter = 'all';
+    let selectedGenre = null;
+    let searchQuery = '';
 
-    // Add click event for better interactivity
+    // Update statistics
+    function updateStats() {
+      const visibleItems = timeline.getVisibleItems();
+      const totalGames = gamesData.length;
+      const ongoingGames = gamesData.filter(g => g.ongoing).length;
+      const totalYears = new Date().getFullYear() - 1972;
+      const totalGenres = [...new Set(gamesData.map(g => g.genre))].length;
+
+      document.getElementById('total-games').textContent = totalGames;
+      document.getElementById('total-years').textContent = totalYears;
+      document.getElementById('total-genres').textContent = totalGenres;
+      document.getElementById('ongoing-games').textContent = ongoingGames;
+    }
+
+    // Advanced filtering system
+    function filterGames(games, filter, genre, search) {
+      let filtered = [...games];
+
+      // Era filter
+      if (filter === 'classic') {
+        filtered = filtered.filter(g => g.era === 'classic');
+      } else if (filter === 'modern') {
+        filtered = filtered.filter(g => g.era === 'modern');
+      } else if (filter === 'ongoing') {
+        filtered = filtered.filter(g => g.ongoing);
+      }
+
+      // Genre filter
+      if (genre) {
+        filtered = filtered.filter(g => g.genre === genre);
+      }
+
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filtered = filtered.filter(g => 
+          g.title.toLowerCase().includes(searchLower) ||
+          g.developer.toLowerCase().includes(searchLower) ||
+          g.platform.toLowerCase().includes(searchLower) ||
+          g.genre.toLowerCase().includes(searchLower) ||
+          g.impact.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return filtered;
+    }
+
+    // Apply filters to timeline
+    function applyFilters() {
+      const filteredGames = filterGames(gamesData, currentFilter, selectedGenre, searchQuery);
+      const filteredItems = createTimelineItems(filteredGames);
+      
+      // Update timeline with smooth transition
+      timeline.setItems(new vis.DataSet(filteredItems));
+      
+      // Auto-fit view to filtered content if needed
+      if (filteredGames.length > 0 && filteredGames.length < gamesData.length) {
+        const dates = filteredGames.map(g => new Date(g.start));
+        const endDates = filteredGames.map(g => new Date(g.end || new Date()));
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...endDates));
+        
+        // Add some padding
+        minDate.setFullYear(minDate.getFullYear() - 1);
+        maxDate.setFullYear(maxDate.getFullYear() + 1);
+        
+        timeline.setWindow(minDate, maxDate, { animation: { duration: 1000, easingFunction: 'easeInOutCubic' } });
+      }
+
+      // Update active filter button styles
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === currentFilter) {
+          btn.classList.add('active');
+        }
+      });
+
+      // Update active genre styles
+      document.querySelectorAll('.legend-item').forEach(item => {
+        if (selectedGenre && item.dataset.genre === selectedGenre) {
+          item.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)';
+          item.style.borderColor = 'rgba(102, 126, 234, 0.6)';
+          item.style.transform = 'translateY(-2px)';
+        } else {
+          item.style.background = '';
+          item.style.borderColor = '';
+          item.style.transform = '';
+        }
+      });
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('search-input');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        searchQuery = e.target.value.trim();
+        applyFilters();
+      }, 300); // Debounce search
+    });
+
+    // Filter button functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.id === 'reset-view') {
+          // Reset all filters and view
+          currentFilter = 'all';
+          selectedGenre = null;
+          searchQuery = '';
+          searchInput.value = '';
+          
+          timeline.setItems(allItems);
+          
+          // Reset to full timeline view
+          const start = new Date(1970, 0, 1);
+          const end = new Date(2025, 0, 1);
+          timeline.setWindow(start, end, { animation: { duration: 1500, easingFunction: 'easeInOutCubic' } });
+          
+          applyFilters();
+        } else {
+          currentFilter = btn.dataset.filter;
+          applyFilters();
+        }
+      });
+    });
+
+    // Genre filtering via legend
+    document.querySelectorAll('.legend-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const genre = item.dataset.genre;
+        
+        if (selectedGenre === genre) {
+          // Deselect if clicking the same genre
+          selectedGenre = null;
+        } else {
+          selectedGenre = genre;
+        }
+        
+        applyFilters();
+      });
+    });
+
+    // Enhanced timeline events
     timeline.on('select', function (event) {
       const selectedItems = event.items;
       if (selectedItems.length > 0) {
         const item = allItems.get(selectedItems[0]);
-        console.log('Selected game:', item.content);
+        const game = gamesData.find(g => g.id === item.id);
+        
+        // Add selection effect
+        document.querySelectorAll('.vis-item').forEach(el => {
+          el.style.zIndex = '';
+        });
+        
+        // Find and highlight the selected item
+        const selectedElement = document.querySelector(`.vis-item[data-id="${item.id}"]`);
+        if (selectedElement) {
+          selectedElement.style.zIndex = '9999';
+        }
+        
+        console.log('Selected game:', game);
       }
     });
 
-    // Responsive handling
-    window.addEventListener('resize', function() {
-      timeline.redraw();
+    // Timeline interaction events
+    timeline.on('doubleClick', function (event) {
+      if (event.item) {
+        const game = gamesData.find(g => g.id === event.item);
+        if (game) {
+          // Focus on the selected game's era
+          const gameStart = new Date(game.start);
+          const gameEnd = new Date(game.end || new Date());
+          
+          const focusStart = new Date(gameStart);
+          focusStart.setFullYear(focusStart.getFullYear() - 2);
+          
+          const focusEnd = new Date(gameEnd);
+          focusEnd.setFullYear(focusEnd.getFullYear() + 2);
+          
+          timeline.setWindow(focusStart, focusEnd, { 
+            animation: { duration: 1000, easingFunction: 'easeInOutCubic' } 
+          });
+        }
+      }
     });
+
+    // Set initial window to show gaming history
+    const start = new Date(1970, 0, 1);
+    const end = new Date(2025, 0, 1);
+    timeline.setWindow(start, end, { animation: { duration: 2000, easingFunction: 'easeOutCubic' } });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'f':
+            e.preventDefault();
+            searchInput.focus();
+            break;
+          case 'r':
+            e.preventDefault();
+            document.getElementById('reset-view').click();
+            break;
+        }
+      }
+      
+      // Era shortcuts
+      if (e.altKey) {
+        switch (e.key) {
+          case '1':
+            e.preventDefault();
+            document.querySelector('[data-filter="classic"]').click();
+            break;
+          case '2':
+            e.preventDefault();
+            document.querySelector('[data-filter="modern"]').click();
+            break;
+          case '3':
+            e.preventDefault();
+            document.querySelector('[data-filter="ongoing"]').click();
+            break;
+        }
+      }
+    });
+
+    // Enhanced responsive handling
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        timeline.redraw();
+        timeline.fit({ animation: { duration: 500 } });
+      }, 250);
+    });
+
+    // Performance optimization: Lazy loading for large datasets
+    timeline.on('rangechange', function () {
+      // Could implement virtual scrolling here for very large datasets
+    });
+
+    // Initialize stats and apply initial state
+    updateStats();
+    applyFilters();
+
+    // Error handling
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.classList.add('show');
+      
+      setTimeout(() => {
+        errorElement.classList.remove('show');
+      }, 5000);
+    }
+
+    // Loading state management
+    function hideLoading() {
+      const loadingOverlay = document.getElementById('loading-overlay');
+      loadingOverlay.classList.add('hidden');
+      
+      // Show keyboard shortcuts after a delay
+      setTimeout(() => {
+        const keyboardHelp = document.getElementById('keyboard-help');
+        keyboardHelp.classList.add('show');
+        
+        // Hide it after 5 seconds
+        setTimeout(() => {
+          keyboardHelp.classList.remove('show');
+        }, 5000);
+      }, 2000);
+    }
+
+    // Timeline initialization with error handling
+    try {
+      // Set initial window to show gaming history
+      const start = new Date(1970, 0, 1);
+      const end = new Date(2025, 0, 1);
+      timeline.setWindow(start, end, { animation: { duration: 2000, easingFunction: 'easeOutCubic' } });
+
+      // Initialize stats and apply initial state
+      updateStats();
+      applyFilters();
+
+      // Complete loading
+      setTimeout(() => {
+        hideLoading();
+        document.body.classList.add('loaded');
+      }, 1500);
+
+    } catch (error) {
+      console.error('Timeline initialization error:', error);
+      showError('Failed to initialize the gaming timeline. Please refresh the page.');
+      hideLoading();
+    }
+
+    // Global error handler
+    window.addEventListener('error', (event) => {
+      console.error('Global error:', event.error);
+      showError('An unexpected error occurred. Some features may not work properly.');
+    });
+
+    // Create a reusable timeline component for integration
+    window.GamingTimeline = {
+      // Initialize the timeline in a given container
+      init: function(containerId, options = {}) {
+        const defaultOptions = {
+          showStats: true,
+          showControls: true,
+          showLegend: true,
+          initialFilter: 'all',
+          autoFocus: true,
+          ...options
+        };
+
+        try {
+          // Component initialization logic here
+          console.log('Gaming Timeline initialized with options:', defaultOptions);
+          return {
+            timeline: timeline,
+            data: gamesData,
+            filter: applyFilters,
+            search: (query) => {
+              searchQuery = query;
+              applyFilters();
+            },
+            destroy: () => {
+              timeline.destroy();
+            }
+          };
+        } catch (error) {
+          console.error('Component initialization failed:', error);
+          throw new Error('Failed to initialize Gaming Timeline component');
+        }
+      },
+
+      // Get timeline data for external use
+      getData: () => gamesData,
+      
+      // Version info
+      version: '1.0.0'
+    };
   </script>
 </body>
 </html>
