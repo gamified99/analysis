@@ -118,26 +118,43 @@
     <p class="text-center text-gray-300 mt-4 text-lg">Journey through gaming history - from arcade classics to modern masterpieces</p>
     
     <div class="legend">
-      <div class="legend-item"><div class="legend-color fps"></div><span>FPS</span></div>
-      <div class="legend-item"><div class="legend-color rpg"></div><span>RPG</span></div>
-      <div class="legend-item"><div class="legend-color strategy"></div><span>Strategy</span></div>
-      <div class="legend-item"><div class="legend-color adventure"></div><span>Adventure</span></div>
-      <div class="legend-item"><div class="legend-color platformer"></div><span>Platformer</span></div>
-      <div class="legend-item"><div class="legend-color racing"></div><span>Racing</span></div>
-      <div class="legend-item"><div class="legend-color fighting"></div><span>Fighting</span></div>
-      <div class="legend-item"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
-      <div class="legend-item"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
-      <div class="legend-item"><div class="legend-color mobile"></div><span>Mobile</span></div>
-      <div class="legend-item"><div class="legend-color mmo"></div><span>MMO</span></div>
-      <div class="legend-item"><div class="legend-color sports"></div><span>Sports</span></div>
+      <div class="legend-item cursor-pointer" data-genre="fps" role="button" aria-pressed="true" tabindex="0"><div class="legend-color fps"></div><span>FPS</span></div>
+      <div class="legend-item cursor-pointer" data-genre="rpg" role="button" aria-pressed="true" tabindex="0"><div class="legend-color rpg"></div><span>RPG</span></div>
+      <div class="legend-item cursor-pointer" data-genre="strategy" role="button" aria-pressed="true" tabindex="0"><div class="legend-color strategy"></div><span>Strategy</span></div>
+      <div class="legend-item cursor-pointer" data-genre="adventure" role="button" aria-pressed="true" tabindex="0"><div class="legend-color adventure"></div><span>Adventure</span></div>
+      <div class="legend-item cursor-pointer" data-genre="platformer" role="button" aria-pressed="true" tabindex="0"><div class="legend-color platformer"></div><span>Platformer</span></div>
+      <div class="legend-item cursor-pointer" data-genre="racing" role="button" aria-pressed="true" tabindex="0"><div class="legend-color racing"></div><span>Racing</span></div>
+      <div class="legend-item cursor-pointer" data-genre="fighting" role="button" aria-pressed="true" tabindex="0"><div class="legend-color fighting"></div><span>Fighting</span></div>
+      <div class="legend-item cursor-pointer" data-genre="puzzle" role="button" aria-pressed="true" tabindex="0"><div class="legend-color puzzle"></div><span>Puzzle</span></div>
+      <div class="legend-item cursor-pointer" data-genre="sandbox" role="button" aria-pressed="true" tabindex="0"><div class="legend-color sandbox"></div><span>Sandbox</span></div>
+      <div class="legend-item cursor-pointer" data-genre="mobile" role="button" aria-pressed="true" tabindex="0"><div class="legend-color mobile"></div><span>Mobile</span></div>
+      <div class="legend-item cursor-pointer" data-genre="mmo" role="button" aria-pressed="true" tabindex="0"><div class="legend-color mmo"></div><span>MMO</span></div>
+      <div class="legend-item cursor-pointer" data-genre="sports" role="button" aria-pressed="true" tabindex="0"><div class="legend-color sports"></div><span>Sports</span></div>
+    </div>
+    
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3" aria-label="Timeline controls">
+      <label for="search-input" class="sr-only">Search games</label>
+      <input id="search-input" type="text" placeholder="Search games..." class="px-3 py-2 rounded-lg bg-slate-800/70 border border-cyan-300/20 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent min-w-[240px]" />
+      <div class="flex flex-wrap gap-2">
+        <button id="btn-today" class="px-3 py-2 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-300/30 text-cyan-200 transition" aria-label="Jump to today">Today</button>
+        <button id="btn-fit" class="px-3 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-300/30 text-purple-200 transition" aria-label="Fit all">Fit</button>
+        <button id="btn-zoom-in" class="px-3 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-300/30 text-emerald-200 transition" aria-label="Zoom in">Zoom In</button>
+        <button id="btn-zoom-out" class="px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-300/30 text-amber-200 transition" aria-label="Zoom out">Zoom Out</button>
+        <button id="btn-reset" class="px-3 py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-300/30 text-rose-200 transition" aria-label="Reset view">Reset</button>
+      </div>
     </div>
   </div>
   
-  <div id="timeline"></div>
+  <div id="timeline" role="region" aria-label="Gaming timeline"></div>
 
   <script>
+    (function() {
+    'use strict';
+
     const container = document.getElementById('timeline');
-    const allItems = new vis.DataSet([
+    if (!container) return;
+
+    const rawItems = [
       // Classic Arcade Era (1970s-1980s)
       { id: 1, content: 'Pong', start: '1972-11-29', end: '1975-11-29', className: 'sports' },
       { id: 2, content: 'Space Invaders', start: '1978-06-01', end: '1982-06-01', className: 'fps' },
@@ -223,7 +240,14 @@
       { id: 68, content: 'FIFA 98', start: '1997-06-01', end: '2002-06-01', className: 'sports' },
       { id: 69, content: 'NBA 2K', start: '1999-11-10', end: '2024-11-10', className: 'sports' },
       { id: 70, content: 'Rocket League', start: '2015-07-07', end: '2024-07-07', className: 'sports' }
-    ]);
+    ];
+
+    const allItems = new vis.DataSet(rawItems.map(function(item) {
+      return Object.assign({}, item, { group: item.className });
+    }));
+
+    const genres = ['fps','rpg','sandbox','adventure','platformer','mobile','strategy','racing','fighting','puzzle','mmo','sports'];
+    const groups = new vis.DataSet(genres.map(function(g) { return { id: g, content: g.toUpperCase() }; }));
 
     const options = {
       width: '100%',
@@ -240,6 +264,7 @@
       showCurrentTime: true,
       orientation: 'top',
       type: 'range',
+      groupOrder: function (a, b) { return genres.indexOf(a.id) - genres.indexOf(b.id); },
       tooltip: {
         followMouse: true,
         template: function (item) {
@@ -272,12 +297,13 @@
 
     const timeline = new vis.Timeline(container);
     timeline.setOptions(options);
+    timeline.setGroups(groups);
     timeline.setItems(allItems);
 
     // Set initial window to show gaming history
-    const start = new Date(1970, 0, 1);
-    const end = new Date(2025, 0, 1);
-    timeline.setWindow(start, end, { animation: true });
+    const initialStart = new Date(1970, 0, 1);
+    const initialEnd = new Date(2025, 0, 1);
+    timeline.setWindow(initialStart, initialEnd, { animation: true });
 
     // Add click event for better interactivity
     timeline.on('select', function (event) {
@@ -292,6 +318,109 @@
     window.addEventListener('resize', function() {
       timeline.redraw();
     });
+
+    // Interactive legend filtering
+    const enabledGenres = new Set(genres);
+    function recomputeItems() {
+      const searchTerm = (document.getElementById('search-input').value || '').trim().toLowerCase();
+      const filtered = rawItems.filter(function(item) {
+        const matchesGenre = enabledGenres.has(item.className);
+        const matchesSearch = searchTerm.length === 0 || item.content.toLowerCase().includes(searchTerm);
+        return matchesGenre && matchesSearch;
+      }).map(function(item) { return Object.assign({}, item, { group: item.className }); });
+      allItems.clear();
+      allItems.add(filtered);
+      // Keep groups consistent with enabled genres for visual clarity
+      const visibleGroups = genres.filter(function(g) { return enabledGenres.has(g); });
+      timeline.setGroups(new vis.DataSet(visibleGroups.map(function(g) { return { id: g, content: g.toUpperCase() }; })));
+    }
+
+    document.querySelectorAll('.legend [data-genre]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        const genre = el.getAttribute('data-genre');
+        const pressed = el.getAttribute('aria-pressed') === 'true';
+        if (pressed) {
+          enabledGenres.delete(genre);
+          el.setAttribute('aria-pressed', 'false');
+        } else {
+          enabledGenres.add(genre);
+          el.setAttribute('aria-pressed', 'true');
+        }
+        recomputeItems();
+      });
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+
+    // Controls: search, zoom, fit, reset, today
+    function debounce(fn, delay) {
+      let t;
+      return function() {
+        clearTimeout(t);
+        const args = arguments;
+        const ctx = this;
+        t = setTimeout(function(){ fn.apply(ctx, args); }, delay);
+      };
+    }
+
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', debounce(recomputeItems, 150));
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        recomputeItems();
+      }
+    });
+
+    document.getElementById('btn-today').addEventListener('click', function(){ timeline.moveTo(new Date(), { animation: true }); });
+    document.getElementById('btn-fit').addEventListener('click', function(){ timeline.fit({ animation: true }); });
+    document.getElementById('btn-reset').addEventListener('click', function(){ timeline.setWindow(initialStart, initialEnd, { animation: true }); });
+
+    function zoom(factor) {
+      const range = timeline.getWindow();
+      const start = new Date(range.start);
+      const end = new Date(range.end);
+      const interval = end - start;
+      const newInterval = interval * factor;
+      const center = new Date(start.valueOf() + interval / 2);
+      const newStart = new Date(center.valueOf() - newInterval / 2);
+      const newEnd = new Date(center.valueOf() + newInterval / 2);
+      timeline.setWindow(newStart, newEnd, { animation: true });
+    }
+    document.getElementById('btn-zoom-in').addEventListener('click', function(){ zoom(0.6); });
+    document.getElementById('btn-zoom-out').addEventListener('click', function(){ zoom(1.4); });
+
+    function pan(percentage) {
+      const range = timeline.getWindow();
+      const start = new Date(range.start);
+      const end = new Date(range.end);
+      const interval = end - start;
+      const shift = interval * percentage;
+      const newStart = new Date(start.valueOf() + shift);
+      const newEnd = new Date(end.valueOf() + shift);
+      timeline.setWindow(newStart, newEnd, { animation: true });
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+      if (e.key === 'ArrowLeft') { pan(-0.1); }
+      if (e.key === 'ArrowRight') { pan(0.1); }
+      if (e.key === 'ArrowUp' || e.key === '+') { zoom(0.8); }
+      if (e.key === 'ArrowDown' || e.key === '-') { zoom(1.25); }
+      if (e.key.toLowerCase() === 'f') { timeline.fit({ animation: true }); }
+      if (e.key.toLowerCase() === 't') { timeline.moveTo(new Date(), { animation: true }); }
+      if (e.key.toLowerCase() === 'r') { timeline.setWindow(initialStart, initialEnd, { animation: true }); }
+    });
+
+    // Initial compute to ensure groups align with items
+    recomputeItems();
+
+    })();
   </script>
 </body>
 </html>
