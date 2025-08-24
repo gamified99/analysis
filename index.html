@@ -108,6 +108,23 @@
       border-radius: 0.25rem;
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
+    
+    /* Controls toolbar enhancements */
+    .toolbar-shadow {
+      box-shadow: 0 0 30px rgba(100, 255, 218, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(100, 255, 218, 0.18);
+    }
+    .toolbar-button {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.3s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .toolbar-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .toolbar-button:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body class="p-6">
@@ -133,10 +150,46 @@
     </div>
   </div>
   
+  <!-- Controls Toolbar -->
+  <div id="controls" class="toolbar-shadow bg-[rgba(15,23,42,0.85)] backdrop-blur-md rounded-xl p-4 mb-4">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <!-- Left: Search -->
+      <div class="flex items-center gap-2 flex-1">
+        <input id="searchInput" type="search" placeholder="Search games (e.g., Mario, Zelda, DOOM)" class="w-full lg:w-96 px-3 py-2 rounded-lg bg-slate-800/70 border border-slate-600/40 text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/60" />
+        <button id="searchPrev" class="toolbar-button px-3 py-2 rounded-lg bg-gradient-to-r from-cyan-500/70 to-blue-600/70 text-white">Prev</button>
+        <button id="searchNext" class="toolbar-button px-3 py-2 rounded-lg bg-gradient-to-r from-cyan-500/70 to-blue-600/70 text-white">Next</button>
+        <span id="searchMeta" class="text-slate-300 text-sm ml-1">0/0</span>
+      </div>
+
+      <!-- Right: View controls -->
+      <div class="flex items-center gap-2">
+        <button id="btnFit" class="toolbar-button px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500/80 to-teal-600/80 text-white">Fit</button>
+        <button id="btnZoomOut" class="toolbar-button px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/80 to-indigo-600/80 text-white">−</button>
+        <button id="btnZoomIn" class="toolbar-button px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/80 to-indigo-600/80 text-white">+</button>
+        <select id="presetRange" class="px-3 py-2 rounded-lg bg-slate-800/70 border border-slate-600/40 text-slate-100 focus:outline-none">
+          <option value="all">All (1970–2025)</option>
+          <option value="70s80s">1970s–1980s</option>
+          <option value="90s">1990s</option>
+          <option value="2000s">2000s</option>
+          <option value="2010s">2010s</option>
+          <option value="2020s">2020s</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
   <div id="timeline"></div>
 
   <script>
     const container = document.getElementById('timeline');
+    const searchInput = document.getElementById('searchInput');
+    const searchPrevBtn = document.getElementById('searchPrev');
+    const searchNextBtn = document.getElementById('searchNext');
+    const searchMeta = document.getElementById('searchMeta');
+    const btnFit = document.getElementById('btnFit');
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomOut = document.getElementById('btnZoomOut');
+    const presetRange = document.getElementById('presetRange');
     const allItems = new vis.DataSet([
       // Classic Arcade Era (1970s-1980s)
       { id: 1, content: 'Pong', start: '1972-11-29', end: '1975-11-29', className: 'sports' },
@@ -278,6 +331,127 @@
     const start = new Date(1970, 0, 1);
     const end = new Date(2025, 0, 1);
     timeline.setWindow(start, end, { animation: true });
+
+    // --- Controls: helpers ---
+    function zoomByFactor(factor) {
+      try {
+        const range = timeline.getWindow();
+        const startMs = range.start.valueOf();
+        const endMs = range.end.valueOf();
+        const centerMs = (startMs + endMs) / 2;
+        const newHalf = (endMs - startMs) * factor / 2;
+        const newStart = new Date(centerMs - newHalf);
+        const newEnd = new Date(centerMs + newHalf);
+        timeline.setWindow(newStart, newEnd, { animation: true });
+      } catch (err) {
+        console.error('Zoom error', err);
+      }
+    }
+
+    function safeFocusOnItem(itemId) {
+      if (!itemId) return;
+      try {
+        if (typeof timeline.focus === 'function') {
+          timeline.focus(itemId, { animation: true });
+        } else {
+          const item = allItems.get(itemId);
+          if (item && item.start) {
+            timeline.moveTo(item.start, { animation: true });
+          }
+        }
+      } catch (err) {
+        const item = allItems.get(itemId);
+        if (item && item.start) timeline.moveTo(item.start);
+      }
+    }
+
+    function applyPresetRange(key) {
+      const ranges = {
+        all: [new Date(1970, 0, 1), new Date(2025, 0, 1)],
+        '70s80s': [new Date(1970, 0, 1), new Date(1990, 0, 1)],
+        '90s': [new Date(1990, 0, 1), new Date(2000, 0, 1)],
+        '2000s': [new Date(2000, 0, 1), new Date(2010, 0, 1)],
+        '2010s': [new Date(2010, 0, 1), new Date(2020, 0, 1)],
+        '2020s': [new Date(2020, 0, 1), new Date(2030, 0, 1)]
+      };
+      const pair = ranges[key] || ranges.all;
+      timeline.setWindow(pair[0], pair[1], { animation: true });
+    }
+
+    // --- Controls: search ---
+    let searchTimer = null;
+    let searchResultsIds = [];
+    let searchIndex = 0;
+
+    function updateSearchMeta() {
+      const total = searchResultsIds.length;
+      const current = total > 0 ? (searchIndex + 1) : 0;
+      searchMeta.textContent = `${current}/${total}`;
+    }
+
+    function runSearch(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        searchResultsIds = [];
+        searchIndex = 0;
+        updateSearchMeta();
+        return;
+      }
+      const allIds = allItems.getIds();
+      const results = [];
+      for (let i = 0; i < allIds.length; i++) {
+        const item = allItems.get(allIds[i]);
+        if (!item || !item.content) continue;
+        if (String(item.content).toLowerCase().includes(q)) {
+          results.push(item.id);
+        }
+      }
+      searchResultsIds = results;
+      searchIndex = 0;
+      updateSearchMeta();
+      if (results.length > 0) {
+        timeline.setSelection(results[0], { focus: true });
+        safeFocusOnItem(results[0]);
+      }
+    }
+
+    function gotoPrev() {
+      if (searchResultsIds.length === 0) return;
+      searchIndex = (searchIndex - 1 + searchResultsIds.length) % searchResultsIds.length;
+      const id = searchResultsIds[searchIndex];
+      timeline.setSelection(id, { focus: true });
+      safeFocusOnItem(id);
+      updateSearchMeta();
+    }
+
+    function gotoNext() {
+      if (searchResultsIds.length === 0) return;
+      searchIndex = (searchIndex + 1) % searchResultsIds.length;
+      const id = searchResultsIds[searchIndex];
+      timeline.setSelection(id, { focus: true });
+      safeFocusOnItem(id);
+      updateSearchMeta();
+    }
+
+    // --- Wire events ---
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        if (searchTimer) clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => runSearch(searchInput.value), 200);
+      });
+      searchInput.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          runSearch(searchInput.value);
+          gotoNext();
+        }
+      });
+    }
+    if (searchPrevBtn) searchPrevBtn.addEventListener('click', gotoPrev);
+    if (searchNextBtn) searchNextBtn.addEventListener('click', gotoNext);
+    if (btnFit) btnFit.addEventListener('click', () => timeline.fit({ animation: true }));
+    if (btnZoomIn) btnZoomIn.addEventListener('click', () => zoomByFactor(0.8));
+    if (btnZoomOut) btnZoomOut.addEventListener('click', () => zoomByFactor(1.25));
+    if (presetRange) presetRange.addEventListener('change', () => applyPresetRange(presetRange.value));
 
     // Add click event for better interactivity
     timeline.on('select', function (event) {
